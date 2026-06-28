@@ -1,44 +1,83 @@
-<p align="center">
-  <img width="80px" src="https://raw.githubusercontent.com/SonicCloudOrg/sonic-server/main/logo.png">
-</p>
-<p align="center">🎉Android Plugin of Sonic cloud real machine platform.</p>
-<p align="center">
-  <span>English |</span>
-  <a href="https://github.com/SonicCloudOrg/sonic-android-apk/blob/main/README_CN.md">
-     简体中文
-  </a>
-</p>
-<p align="center">
-  <a href="#">
-      <img src="https://img.shields.io/github/v/release/SonicCloudOrg/sonic-android-apk?include_prereleases">
-    </a>
-     <a href="#">
-      <img src="https://img.shields.io/github/downloads/SonicCloudOrg/sonic-android-apk/total">
-    </a>
-<a href="https://app.fossa.com/projects/git%2Bgithub.com%2FSonicCloudOrg%2Fsonic-android-apk?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2FSonicCloudOrg%2Fsonic-android-apk.svg?type=shield"/></a>
-</p>
+# SonicLink
 
-## Document
-[Sonic Official Website](https://sonic-cloud.cn/saa/re-saa.html)
+SonicLink 是一个面向 Android 设备控制和信息采集的插件 APK。应用启动后可以拉起前台管理服务，并通过本地 TCP Socket 接收外部控制端指令，用于获取设备应用列表、Wi-Fi 信息，以及配合输入法、音频、触控等插件能力完成远程设备操作。
 
-## How to package
+## 项目结构
 
-```
-gradlew assembleDebug
+- `app`：Android 应用模块，包含主入口、前台服务、输入法服务、音频插件、触控插件、应用列表和 Wi-Fi 信息采集能力。
+- `lib_socketmanager`：Socket 通信库，封装 TCP Server、TCP Client、粘包处理、编解码和连接状态管理。
+
+## 环境要求
+
+- Android Studio 或命令行 Android 构建环境
+- JDK 17
+- Android SDK 34
+- 可用的 Android 设备或模拟器
+
+## 构建
+
+在项目根目录执行：
+
+```bash
+./gradlew assembleDebug
 ```
 
-## Sponsors
+构建产物位于：
 
-Thank you to all our sponsors!
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
 
-[<img src="https://ceshiren.com/uploads/default/original/3X/7/0/70299922296e93e2dcab223153a928c4bfb27df9.jpeg" alt="霍格沃兹测试开发学社" width="500">](https://qrcode.testing-studio.com/f?from=sonic&url=https://ceshiren.com)
+Windows 环境可使用：
 
-> [霍格沃兹测试开发学社](https://qrcode.testing-studio.com/f?from=sonic&url=https://ceshiren.com)是业界领先的测试开发技术高端教育品牌，隶属于[测吧（北京）科技有限公司](http://qrcode.testing-studio.com/f?from=sonic&url=https://www.testing-studio.com) 。学院课程由一线大厂测试经理与资深测试开发专家参与研发，实战驱动。课程涵盖 web/app 自动化测试、接口测试、性能测试、安全测试、持续集成/持续交付/DevOps，测试左移&右移、精准测试、测试平台开发、测试管理等内容，帮助测试工程师实现测试开发技术转型。通过优秀的学社制度（奖学金、内推返学费、行业竞赛等多种方式）来实现学员、学社及用人企业的三方共赢。[进入测试开发技术能力测评!](https://qrcode.testing-studio.com/f?from=sonic&url=https://ceshiren.com/t/topic/14940)
+```bat
+gradlew.bat assembleDebug
+```
 
-## LICENSE
+## 安装与运行
 
-[License](LICENSE)
+安装 debug 包：
 
-- This code is built with reference to [STFService.apk](https://github.com/openstf/STFService.apk) license: [Apache 2.0 License](licenses/LICENSE.STFServiceApk)
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FSonicCloudOrg%2Fsonic-android-apk.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FSonicCloudOrg%2Fsonic-android-apk?ref=badge_large)
+启动普通入口：
+
+```bash
+adb shell am start -n org.cloud.sonic.android/.MainActivity
+```
+
+启动管理服务入口：
+
+```bash
+adb shell am start -n org.cloud.sonic.android/.SonicServiceActivity
+```
+
+`SonicServiceActivity` 会启动 `SonicManagerServiceV2`，该服务默认监听设备端 TCP 端口 `2334`。如果需要从电脑侧连接，可先做端口转发：
+
+```bash
+adb forward tcp:2222 tcp:2334
+```
+
+随后连接本机 `127.0.0.1:2222` 即可向设备端服务发送指令。当前服务支持的基础指令包括：
+
+```text
+action_get_all_app_info
+action_get_all_wifi_info
+org.cloud.sonic.android.STOP
+```
+
+## 测试
+
+运行本地单元测试：
+
+```bash
+./gradlew test
+```
+
+运行 Android 设备测试：
+
+```bash
+./gradlew connectedAndroidTest
+```
