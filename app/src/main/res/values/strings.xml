@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Sonic</string>
+    <string name="app_name">SonicLink</string>
     <string name="version">v2.0.2</string>
     <string name="welcome">Welcome to Sonic APK</string>
     <string name="welcome_audio">Sonic Remote Audio working...</string>
@@ -19,4 +19,15 @@
     <string name="all">All</string>
 
     <string name="keyboard_name">Sonic Keyboard</string>
+    <string name="sonic_link_accessibility_description">SonicLink uses accessibility to perform remote taps, swipes, text input, and system navigation after you connect it to your own testing platform.</string>
+    <string name="sonic_link_agent_title">SonicLink Agent</string>
+    <string name="sonic_link_status_connected">Connected to platform</string>
+    <string name="sonic_link_status_connecting">Connecting to platform</string>
+    <string name="sonic_link_status_reconnecting">Reconnecting to platform</string>
+    <string name="sonic_link_status_disconnected">Disconnected</string>
+    <string name="sonic_link_status_stopped">Stopped</string>
+    <string name="sonic_link_status_error">Connection error</string>
+    <string name="sonic_link_error_missing_ws">Configure a WebSocket URL first.</string>
+    <string name="sonic_link_screen_permission_title">SonicLink Screen Capture</string>
+    <string name="sonic_link_screen_permission_ready">Screen capture permission was granted for this session.</string>
 </resources>

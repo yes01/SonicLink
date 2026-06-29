@@ -1,50 +1,70 @@
-name: deploy to dockerHub
+name: Release Android APK
 
 on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to publish, for example v2.1.0"
+        required: true
+        type: string
 
 jobs:
-  create:
+  build-and-release:
     runs-on: ubuntu-latest
-    steps:
-      - uses: softprops/action-gh-release@v1
-        with:
-          draft: false
-          generate_release_notes: true
+    permissions:
+      contents: write
 
-  build:
-    needs: create
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Resolve release tag
+        id: release
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.release_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: 'Get Previous tag'
-        id: previoustag
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
-      - name: replace version
-        run: ver=${{ steps.previoustag.outputs.tag }} && new_ver=${ver:1} && sed -i "s/SONIC_VERSION/${new_ver}/g" app/build.gradle
-      - name: set up JDK 17
-        uses: actions/setup-java@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Build with Gradle
-        run: ./gradlew assembleDebug
-      - name: rename
-        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/sonic-android-apk.apk
-      - name: Upload To Github Release
-        uses: xresloader/upload-to-github-release@v1.3.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          file: app/build/outputs/apk/debug/sonic-android-apk.apk
-          tag_name: ${{ steps.previoustag.outputs.tag }}
-          update_latest_release: true
-          draft: false
 
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Rename APK
+        run: |
+          mkdir -p release
+          cp app/build/outputs/apk/debug/app-debug.apk "release/SonicLink-${{ steps.release.outputs.tag }}.apk"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonicLink-${{ steps.release.outputs.tag }}-apk
+          path: release/*.apk
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: SonicLink ${{ steps.release.outputs.tag }}
+          files: release/*.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: false

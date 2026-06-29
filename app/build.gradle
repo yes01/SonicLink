@@ -13,7 +13,7 @@ android {
     minSdk 21
     targetSdk 34
     versionCode 10
-    versionName "SONIC_VERSION"
+    versionName "2.1.0-soniclink"
 
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -51,8 +51,9 @@ dependencies {
   implementation 'com.blankj:utilcodex:1.31.0'
 
   //协成
-  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0'
-  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
+  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+  implementation 'com.squareup.okhttp3:okhttp:4.10.0'
 
   // 基础依赖包，必须要依赖 全面屏
   implementation 'com.geyifeng.immersionbar:immersionbar:3.2.1'

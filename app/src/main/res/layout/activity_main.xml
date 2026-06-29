@@ -1,52 +1,262 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="false"
-    tools:context=".MainActivity">
+    android:background="@color/sonic_link_bg"
+    android:fillViewport="true">
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline2"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5" />
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        android:paddingTop="32dp"
+        android:paddingRight="20dp"
+        android:paddingBottom="28dp">
 
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SonicLink Agent"
+            android:textColor="@color/sonic_link_text"
+            android:textSize="28sp"
+            android:textStyle="bold" />
 
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
-        android:layout_marginBottom="16dp"
-        android:src="@mipmap/logo"
-        app:layout_constraintBottom_toTopOf="@+id/guideline2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Connect this phone to your LAN testing platform."
+            android:textColor="@color/sonic_link_muted"
+            android:textSize="15sp" />
 
-    <TextView
-        android:id="@+id/service_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:text="@string/welcome"
-        android:textColor="#606266"
-        android:textSize="18sp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline2" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:background="@drawable/sonic_link_panel_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <TextView
-        android:id="@+id/version"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/version"
-        android:textColor="#606266"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Platform"
+                android:textColor="@color/sonic_link_text"
+                android:textSize="17sp"
+                android:textStyle="bold" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <EditText
+                android:id="@+id/serverHost"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/sonic_link_input_bg"
+                android:hint="Server host, e.g. 192.168.1.10:8080"
+                android:inputType="textUri"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:singleLine="true"
+                android:textColor="@color/sonic_link_text"
+                android:textColorHint="@color/sonic_link_muted"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/httpUrl"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/sonic_link_input_bg"
+                android:hint="HTTP API URL"
+                android:inputType="textUri"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:singleLine="true"
+                android:textColor="@color/sonic_link_text"
+                android:textColorHint="@color/sonic_link_muted"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/webSocketUrl"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/sonic_link_input_bg"
+                android:hint="WebSocket URL, e.g. ws://host/agent"
+                android:inputType="textUri"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:singleLine="true"
+                android:textColor="@color/sonic_link_text"
+                android:textColorHint="@color/sonic_link_muted"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/token"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/sonic_link_input_bg"
+                android:hint="Pairing or device token"
+                android:inputType="textPassword"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:singleLine="true"
+                android:textColor="@color/sonic_link_text"
+                android:textColorHint="@color/sonic_link_muted"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/deviceName"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/sonic_link_input_bg"
+                android:hint="Device display name"
+                android:inputType="text"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:singleLine="true"
+                android:textColor="@color/sonic_link_text"
+                android:textColorHint="@color/sonic_link_muted"
+                android:textSize="14sp" />
+
+            <CheckBox
+                android:id="@+id/autoConnect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:buttonTint="@color/sonic_link_primary"
+                android:text="Start Agent automatically after launch"
+                android:textColor="@color/sonic_link_text"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/saveConfig"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/sonic_link_primary"
+                android:text="Save configuration"
+                android:textAllCaps="false"
+                android:textColor="@color/white" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/sonic_link_panel_bg"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Readiness"
+                android:textColor="@color/sonic_link_text"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/configStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textColor="@color/sonic_link_text"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/accessibilityStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/sonic_link_text"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/screenCaptureStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/sonic_link_text"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/agentStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/sonic_link_text"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/openAccessibility"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:text="Accessibility"
+                    android:textAllCaps="false" />
+
+                <Space
+                    android:layout_width="10dp"
+                    android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/requestCapture"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:text="Screen capture"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/startAgent"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/sonic_link_primary"
+                    android:text="Start Agent"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white" />
+
+                <Space
+                    android:layout_width="10dp"
+                    android:layout_height="1dp" />
+
+                <Button
+                    android:id="@+id/stopAgent"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:text="Stop"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textColor="@color/sonic_link_muted"
+            android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>

@@ -34,6 +34,20 @@ Windows 环境可使用：
 gradlew.bat assembleDebug
 ```
 
+## GitHub 构建安装包
+
+项目已配置 GitHub Actions：
+
+- Pull Request、`main`/`master` 分支推送、手动运行 `Android CI` 时，会构建 debug APK 并保存为 workflow artifact。
+- 推送 `v*.*.*` 格式的 tag（例如 `v2.1.0`）或手动运行 `Release Android APK` 时，会构建 APK、创建 GitHub Release，并上传 `SonicLink-<tag>.apk`。
+
+发布新版本示例：
+
+```bash
+git tag v2.1.0
+git push origin v2.1.0
+```
+
 ## 安装与运行
 
 安装 debug 包：

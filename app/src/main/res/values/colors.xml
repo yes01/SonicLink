@@ -8,4 +8,11 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="auto_bg">#FFFFFFFF</color>
+    <color name="sonic_link_bg">#FFF8F7F2</color>
+    <color name="sonic_link_panel">#FFFFFFFF</color>
+    <color name="sonic_link_text">#FF1F2933</color>
+    <color name="sonic_link_muted">#FF68717D</color>
+    <color name="sonic_link_border">#FFE4E1D8</color>
+    <color name="sonic_link_primary">#FF126A5E</color>
+    <color name="sonic_link_warning">#FFB45309</color>
 </resources>
