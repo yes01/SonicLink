@@ -13,6 +13,7 @@ import android.view.Surface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -27,18 +28,21 @@ import kotlin.math.roundToInt
 class SonicLinkScreenStreamer(
     private val context: Context,
     private val scope: CoroutineScope,
-    private val webSocketProvider: () -> WebSocket?
+    private val webSocketProvider: () -> WebSocket?,
+    private val streamEventSender: (String, Any) -> Unit
 ) {
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var mediaCodec: MediaCodec? = null
     private var inputSurface: Surface? = null
     private var streamJob: Job? = null
+    private var rotationWatchJob: Job? = null
     private var isStopping = false
     private var config = StreamConfig()
+    private var requestedConfig = StreamConfig()
     private val projectionCallback = object : MediaProjection.Callback() {
         override fun onStop() {
-            stop()
+            handleProjectionStoppedBySystem()
         }
     }
 
@@ -52,6 +56,7 @@ class SonicLinkScreenStreamer(
         if (isStreaming) {
             return SonicLinkControlResult.success("stream already running")
         }
+        requestedConfig = config
         this.config = config.normalized(context)
         val data = ScreenCaptureState.data
             ?: return SonicLinkControlResult.failure("screen_permission_missing", "screen capture permission data is missing")
@@ -65,9 +70,11 @@ class SonicLinkScreenStreamer(
             prepareEncoder()
             createVirtualDisplay()
             SonicLinkStatus.screenStreaming = true
+            SonicLinkStatus.lastStreamEvent = "stream_started"
             streamJob = scope.launch(Dispatchers.IO) {
                 drainEncoder()
             }
+            startRotationWatcher()
             SonicLinkControlResult.success("stream started")
         } catch (e: Exception) {
             SLog.e("Failed to start screen stream", e)
@@ -81,22 +88,100 @@ class SonicLinkScreenStreamer(
             return SonicLinkControlResult.success("stream stopped")
         }
         isStopping = true
+        releaseStream(cancelRotationWatcher = true, stopProjection = true)
+        SonicLinkStatus.screenStreaming = false
+        SonicLinkStatus.lastStreamEvent = "stream_stopped"
+        isStopping = false
+        return SonicLinkControlResult.success("stream stopped")
+    }
+
+    private fun handleProjectionStoppedBySystem() {
+        if (isStopping) {
+            return
+        }
+        releaseStream(cancelRotationWatcher = true, stopProjection = false)
+        ScreenCaptureState.clear()
+        SonicLinkStatus.screenStreaming = false
+        SonicLinkStatus.screenCaptureRevokedAt = System.currentTimeMillis()
+        SonicLinkStatus.lastStreamEvent = "screen_capture_revoked"
+        streamEventSender(
+            "stream_stopped",
+            mapOf(
+                "reason" to "screen_capture_revoked",
+                "message" to "Screen capture permission was revoked by the system"
+            )
+        )
+    }
+
+    private fun restartForDisplayChange() {
+        if (!isStreaming) {
+            return
+        }
+        val previous = config
+        val restartConfig = requestedConfig.normalized(context)
+        if (previous.width == restartConfig.width &&
+            previous.height == restartConfig.height &&
+            previous.rotation == restartConfig.rotation
+        ) {
+            return
+        }
+        runCatching {
+            releaseVideoPipeline()
+            config = restartConfig
+            prepareEncoder()
+            createVirtualDisplay()
+            SonicLinkStatus.lastStreamEvent = "stream_format_changed"
+            streamJob = scope.launch(Dispatchers.IO) {
+                drainEncoder()
+            }
+            streamEventSender(
+                "stream_format_changed",
+                mapOf(
+                    "width" to restartConfig.width,
+                    "height" to restartConfig.height,
+                    "rotation" to restartConfig.rotation,
+                    "densityDpi" to restartConfig.densityDpi
+                )
+            )
+        }.onFailure {
+            SLog.e("Failed to restart screen stream after display change", it)
+        }
+    }
+
+    private fun releaseStream(cancelRotationWatcher: Boolean, stopProjection: Boolean) {
         streamJob?.cancel()
+        if (cancelRotationWatcher) {
+            rotationWatchJob?.cancel()
+            rotationWatchJob = null
+        }
         streamJob = null
+        releaseVideoPipeline()
+        runCatching { mediaProjection?.unregisterCallback(projectionCallback) }
+        if (stopProjection) {
+            runCatching { mediaProjection?.stop() }
+        }
+        mediaProjection = null
+    }
+
+    private fun releaseVideoPipeline() {
         runCatching { mediaCodec?.signalEndOfInputStream() }
         runCatching { virtualDisplay?.release() }
         runCatching { inputSurface?.release() }
         runCatching { mediaCodec?.stop() }
         runCatching { mediaCodec?.release() }
-        runCatching { mediaProjection?.unregisterCallback(projectionCallback) }
-        runCatching { mediaProjection?.stop() }
         virtualDisplay = null
         inputSurface = null
         mediaCodec = null
-        mediaProjection = null
-        SonicLinkStatus.screenStreaming = false
-        isStopping = false
-        return SonicLinkControlResult.success("stream stopped")
+    }
+
+    private fun startRotationWatcher() {
+        rotationWatchJob?.cancel()
+        rotationWatchJob = scope.launch(Dispatchers.IO) {
+            while (isActive) {
+                delay(DISPLAY_WATCH_INTERVAL_MS)
+                restartForDisplayChange()
+            }
+        }
     }
 
     private fun prepareEncoder() {
@@ -232,5 +317,6 @@ class SonicLinkScreenStreamer(
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val OUTPUT_TIMEOUT_US = 10_000L
         private const val MAX_EDGE = 1280
+        private const val DISPLAY_WATCH_INTERVAL_MS = 1_000L
     }
 }

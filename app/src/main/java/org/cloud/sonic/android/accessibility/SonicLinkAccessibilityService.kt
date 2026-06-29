@@ -87,13 +87,17 @@ class SonicLinkAccessibilityService : AccessibilityService() {
     fun setText(text: String): SonicLinkControlResult {
         val node = findEditableNode(rootInActiveWindow)
             ?: return SonicLinkControlResult.failure("no_editable_node", "no editable input node is focused")
-        val args = Bundle().apply {
-            putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
-        }
-        return if (node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)) {
-            SonicLinkControlResult.success()
-        } else {
-            SonicLinkControlResult.failure("set_text_failed", "failed to set text on current input node")
+        return setNodeText(node, text)
+    }
+
+    fun inputKey(actionName: String): SonicLinkControlResult {
+        val node = findEditableNode(rootInActiveWindow)
+            ?: return SonicLinkControlResult.failure("no_editable_node", "no editable input node is focused")
+        return when (actionName.lowercase()) {
+            "enter" -> appendText(node, "\n")
+            "delete", "backspace" -> deleteBackward(node)
+            "select_all" -> selectAll(node)
+            else -> SonicLinkControlResult.failure("unsupported_action", "input key is not supported: $actionName")
         }
     }
 
@@ -159,6 +163,43 @@ class SonicLinkAccessibilityService : AccessibilityService() {
             }
         }
         return null
+    }
+
+    private fun appendText(node: AccessibilityNodeInfo, value: String): SonicLinkControlResult {
+        val currentText = node.text?.toString().orEmpty()
+        return setNodeText(node, currentText + value)
+    }
+
+    private fun deleteBackward(node: AccessibilityNodeInfo): SonicLinkControlResult {
+        val currentText = node.text?.toString().orEmpty()
+        if (currentText.isEmpty()) {
+            return SonicLinkControlResult.success()
+        }
+        return setNodeText(node, currentText.dropLast(1))
+    }
+
+    private fun selectAll(node: AccessibilityNodeInfo): SonicLinkControlResult {
+        val textLength = node.text?.length ?: 0
+        val args = Bundle().apply {
+            putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_START_INT, 0)
+            putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT, textLength)
+        }
+        return if (node.performAction(AccessibilityNodeInfo.ACTION_SET_SELECTION, args)) {
+            SonicLinkControlResult.success()
+        } else {
+            SonicLinkControlResult.failure("select_all_failed", "failed to select all text")
+        }
+    }
+
+    private fun setNodeText(node: AccessibilityNodeInfo, text: String): SonicLinkControlResult {
+        val args = Bundle().apply {
+            putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
+        }
+        return if (node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)) {
+            SonicLinkControlResult.success()
+        } else {
+            SonicLinkControlResult.failure("set_text_failed", "failed to set text on current input node")
+        }
     }
 
     companion object {

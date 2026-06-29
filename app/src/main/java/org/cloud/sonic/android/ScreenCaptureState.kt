@@ -11,4 +11,9 @@ object ScreenCaptureState {
 
     val hasPermission: Boolean
         get() = resultCode != 0 && data != null
+
+    fun clear() {
+        resultCode = 0
+        data = null
+    }
 }

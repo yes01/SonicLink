@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.app.AlarmManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
@@ -61,7 +62,12 @@ class SonicLinkAgentService : Service() {
         super.onCreate()
         configStore = SonicLinkConfigStore(this)
         deviceId = configStore.getOrCreateDeviceId()
-        screenStreamer = SonicLinkScreenStreamer(this, serviceScope) { webSocket }
+        screenStreamer = SonicLinkScreenStreamer(
+            context = this,
+            scope = serviceScope,
+            webSocketProvider = { webSocket },
+            streamEventSender = { type, payload -> sendEnvelope(type, payload = payload) }
+        )
         SonicLinkStatus.serviceRunning = true
         createNotificationChannel()
         startAsForeground()
@@ -81,6 +87,25 @@ class SonicLinkAgentService : Service() {
         stopAgent(stopService = false)
         serviceScope.cancel()
         super.onDestroy()
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        val config = configStore.getConfig()
+        if (shouldRun && config.autoConnect && config.isReady) {
+            val restartIntent = PendingIntent.getService(
+                this,
+                2,
+                Intent(this, SonicLinkAgentService::class.java),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+            alarmManager.set(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + TASK_REMOVED_RESTART_DELAY_MS,
+                restartIntent
+            )
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -207,6 +232,7 @@ class SonicLinkAgentService : Service() {
                 "multi_touch" -> respond(requestId, executeMultiTouch(payload))
                 "global_action" -> respond(requestId, executeGlobalAction(payload))
                 "input_text", "set_text" -> respond(requestId, executeSetText(payload))
+                "key_action" -> respond(requestId, executeInputKey(payload))
                 "start_stream" -> respond(requestId, startStream(payload))
                 "stop_stream" -> {
                     val result = screenStreamer.stop()
@@ -286,6 +312,11 @@ class SonicLinkAgentService : Service() {
     private fun executeSetText(payload: JsonObject): SonicLinkControlResult {
         val service = accessibilityService() ?: return accessibilityUnavailable()
         return service.setText(payload.string("text"))
+    }
+
+    private fun executeInputKey(payload: JsonObject): SonicLinkControlResult {
+        val service = accessibilityService() ?: return accessibilityUnavailable()
+        return service.inputKey(payload.string("action"))
     }
 
     private fun startStream(payload: JsonObject): SonicLinkControlResult {
@@ -458,6 +489,7 @@ class SonicLinkAgentService : Service() {
         private const val CHANNEL_ID = "sonic_link_agent"
         private const val NOTIFICATION_ID = 2024
         private const val HEARTBEAT_INTERVAL_MS = 5_000L
+        private const val TASK_REMOVED_RESTART_DELAY_MS = 2_000L
         private const val MAX_RECONNECT_DELAY_MS = 30_000L
         private const val MAX_RECONNECT_EXPONENT = 5
 

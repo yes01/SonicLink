@@ -193,6 +193,22 @@
                 android:textColor="@color/sonic_link_text"
                 android:textSize="14sp" />
 
+            <TextView
+                android:id="@+id/deviceStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/sonic_link_text"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/blockingStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/sonic_link_warning"
+                android:textSize="14sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -219,6 +235,14 @@
                     android:text="Screen capture"
                     android:textAllCaps="false" />
             </LinearLayout>
+
+            <Button
+                android:id="@+id/openAppSettings"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="10dp"
+                android:text="App settings"
+                android:textAllCaps="false" />
 
             <LinearLayout
                 android:layout_width="match_parent"

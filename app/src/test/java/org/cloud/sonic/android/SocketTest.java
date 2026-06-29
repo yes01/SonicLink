@@ -1,6 +1,7 @@
 package org.cloud.sonic.android;
 
 import org.junit.Test;
+import org.junit.Ignore;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+@Ignore("Legacy manual ADB/socket smoke tests require a connected device")
 public class SocketTest {
     @Test
     public void test() throws IOException, InterruptedException {

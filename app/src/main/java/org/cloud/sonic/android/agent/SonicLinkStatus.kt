@@ -27,4 +27,10 @@ object SonicLinkStatus {
 
     @Volatile
     var screenStreaming: Boolean = false
+
+    @Volatile
+    var lastStreamEvent: String? = null
+
+    @Volatile
+    var screenCaptureRevokedAt: Long = 0L
 }

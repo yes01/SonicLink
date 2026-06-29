@@ -4,5 +4,6 @@ data class SonicLinkDisplayInfo(
     val width: Int,
     val height: Int,
     val rotation: Int,
-    val densityDpi: Int
+    val densityDpi: Int,
+    val insets: SonicLinkDisplayInsets
 )

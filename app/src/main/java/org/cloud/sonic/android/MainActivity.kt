@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -21,6 +22,9 @@ import org.cloud.sonic.android.agent.SonicLinkConfigStore
 import org.cloud.sonic.android.agent.SonicLinkDeviceInfo
 import org.cloud.sonic.android.agent.SonicLinkStatus
 import org.cloud.sonic.android.databinding.ActivityMainBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -89,6 +93,13 @@ class MainActivity : AppCompatActivity() {
         binding.requestCapture.setOnClickListener {
             startActivity(Intent(this, ScreenCaptureActivity::class.java))
         }
+        binding.openAppSettings.setOnClickListener {
+            startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.parse("package:$packageName")
+                }
+            )
+        }
         binding.startAgent.setOnClickListener {
             saveConfig()
             SonicLinkAgentService.start(this)
@@ -128,11 +139,35 @@ class MainActivity : AppCompatActivity() {
         val hasConfig = config.isReady
         val accessibilityEnabled = SonicLinkDeviceInfo.isAccessibilityEnabled(this)
         val captureGranted = ScreenCaptureState.hasPermission
+        val display = SonicLinkDeviceInfo.displayInfo(this)
         binding.configStatus.text = statusLine("Platform address", hasConfig, if (hasConfig) config.webSocketUrl else "Missing WebSocket URL")
         binding.accessibilityStatus.text = statusLine("Accessibility", accessibilityEnabled, if (accessibilityEnabled) "Enabled" else "Required for remote control")
         binding.screenCaptureStatus.text = statusLine("Screen capture", captureGranted, if (captureGranted) "Granted for this process" else "Not granted")
-        binding.agentStatus.text = "Agent: ${SonicLinkStatus.connectionState.name.lowercase()}${SonicLinkStatus.lastError?.let { " ($it)" } ?: ""}"
+        binding.agentStatus.text = "Agent: ${SonicLinkStatus.connectionState.name.lowercase()}${SonicLinkStatus.lastError?.let { " ($it)" } ?: ""}${lastHeartbeatText()}"
+        binding.deviceStatus.text = "Device: ${configStore.getOrCreateDeviceId()} - ${display.width}x${display.height}, rotation ${display.rotation}"
+        binding.blockingStatus.text = blockingStatus(hasConfig, accessibilityEnabled, captureGranted)
         binding.startAgent.isEnabled = hasConfig
+    }
+
+    private fun blockingStatus(hasConfig: Boolean, accessibilityEnabled: Boolean, captureGranted: Boolean): String {
+        val issues = mutableListOf<String>()
+        if (!hasConfig) issues.add("Configure WebSocket URL")
+        if (!accessibilityEnabled) issues.add("Enable Accessibility")
+        if (!captureGranted) issues.add("Grant screen capture before streaming")
+        SonicLinkStatus.lastStreamEvent?.let { issues.add("Stream event: $it") }
+        return if (issues.isEmpty()) {
+            "Ready for Agent connection"
+        } else {
+            "Needs attention: ${issues.joinToString("; ")}"
+        }
+    }
+
+    private fun lastHeartbeatText(): String {
+        if (SonicLinkStatus.lastHeartbeatAt == 0L) {
+            return ""
+        }
+        val formatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        return " - heartbeat ${formatter.format(Date(SonicLinkStatus.lastHeartbeatAt))}"
     }
 
     private fun requestNotificationPermissionIfNeeded() {

@@ -11,7 +11,9 @@ import android.os.BatteryManager
 import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils
+import android.view.DisplayCutout
 import android.view.WindowManager
+import android.view.WindowMetrics
 import androidx.core.content.getSystemService
 import org.cloud.sonic.android.ScreenCaptureState
 import org.cloud.sonic.android.accessibility.SonicLinkAccessibilityService
@@ -51,8 +53,41 @@ object SonicLinkDeviceInfo {
             width = metrics.widthPixels,
             height = metrics.heightPixels,
             rotation = rotation,
-            densityDpi = metrics.densityDpi
+            densityDpi = metrics.densityDpi,
+            insets = displayInsets(context, windowManager)
         )
+    }
+
+    private fun displayInsets(context: Context, windowManager: WindowManager?): SonicLinkDisplayInsets {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowMetrics: WindowMetrics? = windowManager?.currentWindowMetrics
+            val windowInsets = windowMetrics?.windowInsets
+            val statusInsets = windowInsets?.getInsets(android.view.WindowInsets.Type.statusBars())
+            val navigationInsets = windowInsets?.getInsets(android.view.WindowInsets.Type.navigationBars())
+            val cutout = windowInsets?.displayCutout
+            SonicLinkDisplayInsets(
+                statusBarTop = statusInsets?.top ?: 0,
+                navigationBarBottom = navigationInsets?.bottom ?: 0,
+                cutoutTop = cutout?.safeInsetTop ?: 0,
+                cutoutBottom = cutout?.safeInsetBottom ?: 0,
+                cutoutLeft = cutout?.safeInsetLeft ?: 0,
+                cutoutRight = cutout?.safeInsetRight ?: 0
+            )
+        } else {
+            SonicLinkDisplayInsets(
+                statusBarTop = resourceSize(context, "status_bar_height"),
+                navigationBarBottom = resourceSize(context, "navigation_bar_height"),
+                cutoutTop = 0,
+                cutoutBottom = 0,
+                cutoutLeft = 0,
+                cutoutRight = 0
+            )
+        }
+    }
+
+    private fun resourceSize(context: Context, name: String): Int {
+        val id = context.resources.getIdentifier(name, "dimen", "android")
+        return if (id > 0) context.resources.getDimensionPixelSize(id) else 0
     }
 
     fun isAccessibilityEnabled(context: Context): Boolean {
