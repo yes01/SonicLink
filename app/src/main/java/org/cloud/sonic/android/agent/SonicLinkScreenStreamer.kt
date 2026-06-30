@@ -39,6 +39,7 @@ class SonicLinkScreenStreamer(
     private var rotationWatchJob: Job? = null
     private var codecConfigPayload: ByteArray? = null
     private var isStopping = false
+    private var sendFailureNotified = false
     private var config = StreamConfig()
     private var requestedConfig = StreamConfig()
     private val projectionCallback = object : MediaProjection.Callback() {
@@ -59,6 +60,7 @@ class SonicLinkScreenStreamer(
         }
         requestedConfig = config
         this.config = config.normalized(context)
+        sendFailureNotified = false
         val data = ScreenCaptureState.data
             ?: return SonicLinkControlResult.failure("screen_permission_missing", "screen capture permission data is missing")
         val projectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -248,6 +250,9 @@ class SonicLinkScreenStreamer(
         } else {
             SonicLinkVideoPacket.TYPE_FRAME
         }
+        if (type == SonicLinkVideoPacket.TYPE_FRAME && isWebSocketBackedUp()) {
+            return
+        }
         if (type == SonicLinkVideoPacket.TYPE_KEY_FRAME) {
             codecConfigPayload?.let {
                 sendBinary(SonicLinkVideoPacket.TYPE_CODEC_CONFIG, bufferInfo.presentationTimeUs / 1000L, it)
@@ -278,6 +283,11 @@ class SonicLinkScreenStreamer(
     }
 
     private fun sendBinary(type: Byte, timestampMs: Long, payload: ByteArray) {
+        val socket = webSocketProvider()
+        if (socket == null) {
+            notifySendFailure("agent websocket is not connected")
+            return
+        }
         val packet = ByteBuffer.allocate(SonicLinkVideoPacket.HEADER_SIZE + payload.size)
             .put(type)
             .putLong(timestampMs)
@@ -287,14 +297,39 @@ class SonicLinkScreenStreamer(
             .putInt(payload.size)
             .put(payload)
             .array()
-        webSocketProvider()?.send(packet.toByteString())
+        if (!socket.send(packet.toByteString())) {
+            notifySendFailure("agent websocket send queue is closed or full")
+        }
+    }
+
+    private fun isWebSocketBackedUp(): Boolean {
+        return (webSocketProvider()?.queueSize() ?: 0L) > MAX_WEBSOCKET_QUEUE_BYTES
+    }
+
+    private fun notifySendFailure(message: String) {
+        if (sendFailureNotified || isStopping) {
+            return
+        }
+        sendFailureNotified = true
+        SLog.e("Screen stream send failed: $message")
+        SonicLinkStatus.lastStreamEvent = "stream_error"
+        streamEventSender(
+            "stream_error",
+            mapOf(
+                "reason" to "websocket_send_failed",
+                "message" to message
+            )
+        )
+        scope.launch(Dispatchers.IO) {
+            stop()
+        }
     }
 
     data class StreamConfig(
         val width: Int = 0,
         val height: Int = 0,
-        val bitRate: Int = 2_000_000,
-        val frameRate: Int = 20,
+        val bitRate: Int = 1_000_000,
+        val frameRate: Int = 12,
         val iFrameIntervalSeconds: Int = 1,
         val rotation: Int = 0,
         val densityDpi: Int = 0
@@ -327,5 +362,6 @@ class SonicLinkScreenStreamer(
         private const val OUTPUT_TIMEOUT_US = 10_000L
         private const val MAX_EDGE = 1280
         private const val DISPLAY_WATCH_INTERVAL_MS = 1_000L
+        private const val MAX_WEBSOCKET_QUEUE_BYTES = 4L * 1024L * 1024L
     }
 }

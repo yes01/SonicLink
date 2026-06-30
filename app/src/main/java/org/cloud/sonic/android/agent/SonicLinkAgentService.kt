@@ -326,12 +326,19 @@ class SonicLinkAgentService : Service() {
         val config = SonicLinkScreenStreamer.StreamConfig(
             width = payload.int("width", 0),
             height = payload.int("height", 0),
-            bitRate = payload.int("bitRate", 2_000_000),
-            frameRate = payload.int("frameRate", 20),
+            bitRate = payload.int("bitRate", 1_000_000),
+            frameRate = payload.int("frameRate", 12),
             iFrameIntervalSeconds = payload.int("iFrameIntervalSeconds", 1)
         )
-        updateForegroundServiceType(includeMediaProjection = true)
-        return screenStreamer.start(config)
+        val foregroundResult = updateForegroundServiceType(includeMediaProjection = true)
+        if (foregroundResult != null) {
+            return foregroundResult
+        }
+        val result = screenStreamer.start(config)
+        if (!result.success) {
+            updateForegroundServiceType(includeMediaProjection = false)
+        }
+        return result
     }
 
     private fun accessibilityService() = SonicLinkAccessibilityState.service
@@ -395,19 +402,36 @@ class SonicLinkAgentService : Service() {
     }
 
     private fun startAsForeground() {
-        startForeground(NOTIFICATION_ID, buildNotification())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                NOTIFICATION_ID,
+                buildNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification())
+        }
     }
 
-    private fun updateForegroundServiceType(includeMediaProjection: Boolean) {
+    private fun updateForegroundServiceType(includeMediaProjection: Boolean): SonicLinkControlResult? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            return
+            return null
         }
         val type = if (includeMediaProjection) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC or ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
         } else {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
         }
-        startForeground(NOTIFICATION_ID, buildNotification(), type)
+        return runCatching {
+            startForeground(NOTIFICATION_ID, buildNotification(), type)
+            null
+        }.getOrElse {
+            SLog.e("Failed to update foreground service type", it)
+            SonicLinkControlResult.failure(
+                "foreground_service_type_failed",
+                it.message ?: "failed to update foreground service type"
+            )
+        }
     }
 
     private fun updateNotification() {
