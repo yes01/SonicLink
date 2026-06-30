@@ -53,7 +53,10 @@ class SonicLinkScreenStreamer(
 
     fun start(config: StreamConfig = StreamConfig()): SonicLinkControlResult {
         if (!ScreenCaptureState.hasPermission) {
-            return SonicLinkControlResult.failure("screen_permission_missing", "screen capture permission is not granted")
+            return SonicLinkControlResult.failure(
+                "screen_permission_missing",
+                "screen capture permission is missing or has already been used; grant screen capture again on the phone"
+            )
         }
         if (isStreaming) {
             return SonicLinkControlResult.success("stream already running")
@@ -62,9 +65,13 @@ class SonicLinkScreenStreamer(
         this.config = config.normalized(context)
         sendFailureNotified = false
         val data = ScreenCaptureState.data
-            ?: return SonicLinkControlResult.failure("screen_permission_missing", "screen capture permission data is missing")
+            ?: return SonicLinkControlResult.failure(
+                "screen_permission_missing",
+                "screen capture permission data is missing; grant screen capture again on the phone"
+            )
         val projectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         mediaProjection = projectionManager.getMediaProjection(ScreenCaptureState.resultCode, data)
+        ScreenCaptureState.markConsumed()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mediaProjection?.registerCallback(projectionCallback, null)
         }
@@ -92,10 +99,11 @@ class SonicLinkScreenStreamer(
         }
         isStopping = true
         releaseStream(cancelRotationWatcher = true, stopProjection = true)
+        ScreenCaptureState.clear()
         SonicLinkStatus.screenStreaming = false
         SonicLinkStatus.lastStreamEvent = "stream_stopped"
         isStopping = false
-        return SonicLinkControlResult.success("stream stopped")
+        return SonicLinkControlResult.success("stream stopped; screen capture permission must be granted again before the next stream")
     }
 
     private fun handleProjectionStoppedBySystem() {
@@ -128,26 +136,16 @@ class SonicLinkScreenStreamer(
         ) {
             return
         }
-        runCatching {
-            releaseVideoPipeline()
-            config = restartConfig
-            prepareEncoder()
-            createVirtualDisplay()
-            SonicLinkStatus.lastStreamEvent = "stream_format_changed"
-            streamJob = scope.launch(Dispatchers.IO) {
-                drainEncoder()
-            }
-            streamEventSender(
-                "stream_format_changed",
-                mapOf(
-                    "width" to restartConfig.width,
-                    "height" to restartConfig.height,
-                    "rotation" to restartConfig.rotation,
-                    "densityDpi" to restartConfig.densityDpi
-                )
+        SonicLinkStatus.lastStreamEvent = "stream_stopped"
+        streamEventSender(
+            "stream_stopped",
+            mapOf(
+                "reason" to "display_changed",
+                "message" to "Display changed; grant screen capture again before restarting the stream"
             )
-        }.onFailure {
-            SLog.e("Failed to restart screen stream after display change", it)
+        )
+        scope.launch(Dispatchers.IO) {
+            stop()
         }
     }
 
@@ -254,6 +252,9 @@ class SonicLinkScreenStreamer(
             return
         }
         if (type == SonicLinkVideoPacket.TYPE_KEY_FRAME) {
+            if (isWebSocketBackedUp()) {
+                return
+            }
             codecConfigPayload?.let {
                 sendBinary(SonicLinkVideoPacket.TYPE_CODEC_CONFIG, bufferInfo.presentationTimeUs / 1000L, it)
             }
@@ -288,6 +289,9 @@ class SonicLinkScreenStreamer(
             notifySendFailure("agent websocket is not connected")
             return
         }
+        if (socket.queueSize() > MAX_WEBSOCKET_QUEUE_BYTES) {
+            return
+        }
         val packet = ByteBuffer.allocate(SonicLinkVideoPacket.HEADER_SIZE + payload.size)
             .put(type)
             .putLong(timestampMs)
@@ -298,7 +302,7 @@ class SonicLinkScreenStreamer(
             .put(payload)
             .array()
         if (!socket.send(packet.toByteString())) {
-            notifySendFailure("agent websocket send queue is closed or full")
+            SLog.w("Drop screen stream packet because agent websocket queue is closed or full")
         }
     }
 
@@ -328,8 +332,8 @@ class SonicLinkScreenStreamer(
     data class StreamConfig(
         val width: Int = 0,
         val height: Int = 0,
-        val bitRate: Int = 1_000_000,
-        val frameRate: Int = 12,
+        val bitRate: Int = 600_000,
+        val frameRate: Int = 8,
         val iFrameIntervalSeconds: Int = 1,
         val rotation: Int = 0,
         val densityDpi: Int = 0
@@ -344,7 +348,7 @@ class SonicLinkScreenStreamer(
             return copy(
                 width = normalizedWidth.coerceAtLeast(2),
                 height = normalizedHeight.coerceAtLeast(2),
-                bitRate = bitRate.coerceIn(500_000, 8_000_000),
+                bitRate = bitRate.coerceIn(300_000, 8_000_000),
                 frameRate = frameRate.coerceIn(5, 30),
                 iFrameIntervalSeconds = iFrameIntervalSeconds.coerceIn(1, 10),
                 rotation = display.rotation,
@@ -360,8 +364,8 @@ class SonicLinkScreenStreamer(
     companion object {
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val OUTPUT_TIMEOUT_US = 10_000L
-        private const val MAX_EDGE = 1280
+        private const val MAX_EDGE = 720
         private const val DISPLAY_WATCH_INTERVAL_MS = 1_000L
-        private const val MAX_WEBSOCKET_QUEUE_BYTES = 4L * 1024L * 1024L
+        private const val MAX_WEBSOCKET_QUEUE_BYTES = 512L * 1024L
     }
 }

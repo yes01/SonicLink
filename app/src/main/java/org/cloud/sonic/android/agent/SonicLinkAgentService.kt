@@ -237,6 +237,7 @@ class SonicLinkAgentService : Service() {
                 "stop_stream" -> {
                     val result = screenStreamer.stop()
                     updateForegroundServiceType(includeMediaProjection = false)
+                    notifyStatusChanged()
                     respond(requestId, result)
                 }
                 "get_status" -> sendEnvelope("status", requestId, SonicLinkDeviceInfo.collect(this@SonicLinkAgentService, configStore.getConfig()))
@@ -321,13 +322,17 @@ class SonicLinkAgentService : Service() {
 
     private fun startStream(payload: JsonObject): SonicLinkControlResult {
         if (!ScreenCaptureState.hasPermission) {
-            return SonicLinkControlResult.failure("screen_permission_missing", "screen capture permission is not granted")
+            updateForegroundServiceType(includeMediaProjection = false)
+            return SonicLinkControlResult.failure(
+                "screen_permission_missing",
+                "screen capture permission is missing or has already been used; grant screen capture again on the phone"
+            )
         }
         val config = SonicLinkScreenStreamer.StreamConfig(
             width = payload.int("width", 0),
             height = payload.int("height", 0),
-            bitRate = payload.int("bitRate", 1_000_000),
-            frameRate = payload.int("frameRate", 12),
+            bitRate = payload.int("bitRate", 600_000),
+            frameRate = payload.int("frameRate", 8),
             iFrameIntervalSeconds = payload.int("iFrameIntervalSeconds", 1)
         )
         val foregroundResult = updateForegroundServiceType(includeMediaProjection = true)
