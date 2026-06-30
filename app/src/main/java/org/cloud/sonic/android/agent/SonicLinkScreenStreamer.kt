@@ -37,6 +37,7 @@ class SonicLinkScreenStreamer(
     private var inputSurface: Surface? = null
     private var streamJob: Job? = null
     private var rotationWatchJob: Job? = null
+    private var codecConfigPayload: ByteArray? = null
     private var isStopping = false
     private var config = StreamConfig()
     private var requestedConfig = StreamConfig()
@@ -172,6 +173,7 @@ class SonicLinkScreenStreamer(
         virtualDisplay = null
         inputSurface = null
         mediaCodec = null
+        codecConfigPayload = null
     }
 
     private fun startRotationWatcher() {
@@ -246,6 +248,11 @@ class SonicLinkScreenStreamer(
         } else {
             SonicLinkVideoPacket.TYPE_FRAME
         }
+        if (type == SonicLinkVideoPacket.TYPE_KEY_FRAME) {
+            codecConfigPayload?.let {
+                sendBinary(SonicLinkVideoPacket.TYPE_CODEC_CONFIG, bufferInfo.presentationTimeUs / 1000L, it)
+            }
+        }
         sendBinary(type, bufferInfo.presentationTimeUs / 1000L, payload)
     }
 
@@ -254,7 +261,9 @@ class SonicLinkScreenStreamer(
         appendFormatBuffer(format, "csd-0", configBytes)
         appendFormatBuffer(format, "csd-1", configBytes)
         if (configBytes.isNotEmpty()) {
-            sendBinary(SonicLinkVideoPacket.TYPE_CODEC_CONFIG, System.currentTimeMillis(), configBytes.toByteArray())
+            val payload = configBytes.toByteArray()
+            codecConfigPayload = payload
+            sendBinary(SonicLinkVideoPacket.TYPE_CODEC_CONFIG, System.currentTimeMillis(), payload)
         }
     }
 

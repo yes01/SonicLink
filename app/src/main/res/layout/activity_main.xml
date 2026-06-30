@@ -4,24 +4,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/sonic_link_bg"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingLeft="20dp"
-        android:paddingTop="32dp"
-        android:paddingRight="20dp"
-        android:paddingBottom="28dp">
+        android:paddingStart="16dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="24dp">
 
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="SonicLink Agent"
+            android:text="@string/main_title"
             android:textColor="@color/sonic_link_text"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
         <TextView
@@ -29,7 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Connect this phone to your LAN testing platform."
+            android:text="@string/main_subtitle"
             android:textColor="@color/sonic_link_muted"
             android:textSize="15sp" />
 
@@ -44,7 +45,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Platform"
+                android:text="@string/section_platform"
                 android:textColor="@color/sonic_link_text"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -52,13 +53,13 @@
             <EditText
                 android:id="@+id/serverHost"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/sonic_link_input_bg"
-                android:hint="Server host, e.g. 192.168.1.10:8080"
+                android:hint="@string/hint_server_host"
                 android:inputType="textUri"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:singleLine="true"
                 android:textColor="@color/sonic_link_text"
                 android:textColorHint="@color/sonic_link_muted"
@@ -67,13 +68,13 @@
             <EditText
                 android:id="@+id/httpUrl"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/sonic_link_input_bg"
-                android:hint="HTTP API URL"
+                android:hint="@string/hint_http_url"
                 android:inputType="textUri"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:singleLine="true"
                 android:textColor="@color/sonic_link_text"
                 android:textColorHint="@color/sonic_link_muted"
@@ -82,13 +83,13 @@
             <EditText
                 android:id="@+id/webSocketUrl"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/sonic_link_input_bg"
-                android:hint="WebSocket URL, e.g. ws://host/agent"
+                android:hint="@string/hint_websocket_url"
                 android:inputType="textUri"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:singleLine="true"
                 android:textColor="@color/sonic_link_text"
                 android:textColorHint="@color/sonic_link_muted"
@@ -97,13 +98,13 @@
             <EditText
                 android:id="@+id/token"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/sonic_link_input_bg"
-                android:hint="Pairing or device token"
+                android:hint="@string/hint_token"
                 android:inputType="textPassword"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:singleLine="true"
                 android:textColor="@color/sonic_link_text"
                 android:textColorHint="@color/sonic_link_muted"
@@ -112,13 +113,13 @@
             <EditText
                 android:id="@+id/deviceName"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/sonic_link_input_bg"
-                android:hint="Device display name"
+                android:hint="@string/hint_device_name"
                 android:inputType="text"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:singleLine="true"
                 android:textColor="@color/sonic_link_text"
                 android:textColorHint="@color/sonic_link_muted"
@@ -130,7 +131,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:buttonTint="@color/sonic_link_primary"
-                android:text="Start Agent automatically after launch"
+                android:minHeight="48dp"
+                android:text="@string/auto_connect_after_launch"
                 android:textColor="@color/sonic_link_text"
                 android:textSize="14sp" />
 
@@ -140,7 +142,7 @@
                 android:layout_height="46dp"
                 android:layout_marginTop="10dp"
                 android:backgroundTint="@color/sonic_link_primary"
-                android:text="Save configuration"
+                android:text="@string/save_configuration"
                 android:textAllCaps="false"
                 android:textColor="@color/white" />
         </LinearLayout>
@@ -156,7 +158,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Readiness"
+                android:text="@string/section_readiness"
                 android:textColor="@color/sonic_link_text"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -213,26 +215,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <Button
                     android:id="@+id/openAccessibility"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="46dp"
-                    android:layout_weight="1"
-                    android:text="Accessibility"
+                    android:text="@string/open_accessibility"
                     android:textAllCaps="false" />
-
-                <Space
-                    android:layout_width="10dp"
-                    android:layout_height="1dp" />
 
                 <Button
                     android:id="@+id/requestCapture"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="46dp"
-                    android:layout_weight="1"
-                    android:text="Screen capture"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/request_screen_capture"
                     android:textAllCaps="false" />
             </LinearLayout>
 
@@ -241,35 +238,30 @@
                 android:layout_width="match_parent"
                 android:layout_height="46dp"
                 android:layout_marginTop="10dp"
-                android:text="App settings"
+                android:text="@string/open_app_settings"
                 android:textAllCaps="false" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <Button
                     android:id="@+id/startAgent"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="46dp"
-                    android:layout_weight="1"
                     android:backgroundTint="@color/sonic_link_primary"
-                    android:text="Start Agent"
+                    android:text="@string/start_agent"
                     android:textAllCaps="false"
                     android:textColor="@color/white" />
 
-                <Space
-                    android:layout_width="10dp"
-                    android:layout_height="1dp" />
-
                 <Button
                     android:id="@+id/stopAgent"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="46dp"
-                    android:layout_weight="1"
-                    android:text="Stop"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/stop_agent"
                     android:textAllCaps="false" />
             </LinearLayout>
         </LinearLayout>

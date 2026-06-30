@@ -19,12 +19,10 @@ import com.gyf.immersionbar.ktx.immersionBar
 import org.cloud.sonic.android.agent.SonicLinkAgentService
 import org.cloud.sonic.android.agent.SonicLinkConfig
 import org.cloud.sonic.android.agent.SonicLinkConfigStore
+import org.cloud.sonic.android.agent.SonicLinkConnectionState
 import org.cloud.sonic.android.agent.SonicLinkDeviceInfo
 import org.cloud.sonic.android.agent.SonicLinkStatus
 import org.cloud.sonic.android.databinding.ActivityMainBinding
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -81,13 +79,13 @@ class MainActivity : AppCompatActivity() {
     private fun bindActions() {
         binding.saveConfig.setOnClickListener {
             saveConfig()
-            Toast.makeText(this, "Configuration saved", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.toast_config_saved, Toast.LENGTH_SHORT).show()
             renderStatus()
         }
         binding.openAccessibility.setOnClickListener {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                Toast.makeText(this, "If Android blocks this sideloaded app, open App info and allow restricted settings.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, R.string.toast_restricted_settings, Toast.LENGTH_LONG).show()
             }
         }
         binding.requestCapture.setOnClickListener {
@@ -119,7 +117,7 @@ class MainActivity : AppCompatActivity() {
         binding.token.setText(config.token)
         binding.deviceName.setText(config.deviceName)
         binding.autoConnect.isChecked = config.autoConnect
-        binding.version.text = "Version ${AppUtils.getAppVersionName()}"
+        binding.version.text = getString(R.string.version_label, AppUtils.getAppVersionName())
     }
 
     private fun saveConfig() {
@@ -140,34 +138,38 @@ class MainActivity : AppCompatActivity() {
         val accessibilityEnabled = SonicLinkDeviceInfo.isAccessibilityEnabled(this)
         val captureGranted = ScreenCaptureState.hasPermission
         val display = SonicLinkDeviceInfo.displayInfo(this)
-        binding.configStatus.text = statusLine("Platform address", hasConfig, if (hasConfig) config.webSocketUrl else "Missing WebSocket URL")
-        binding.accessibilityStatus.text = statusLine("Accessibility", accessibilityEnabled, if (accessibilityEnabled) "Enabled" else "Required for remote control")
-        binding.screenCaptureStatus.text = statusLine("Screen capture", captureGranted, if (captureGranted) "Granted for this process" else "Not granted")
-        binding.agentStatus.text = "Agent: ${SonicLinkStatus.connectionState.name.lowercase()}${SonicLinkStatus.lastError?.let { " ($it)" } ?: ""}${lastHeartbeatText()}"
-        binding.deviceStatus.text = "Device: ${configStore.getOrCreateDeviceId()} - ${display.width}x${display.height}, rotation ${display.rotation}"
+        binding.configStatus.text = statusLine(
+            getString(R.string.status_platform_address),
+            hasConfig,
+            if (hasConfig) config.webSocketUrl else getString(R.string.status_missing_ws)
+        )
+        binding.accessibilityStatus.text = statusLine(
+            getString(R.string.status_accessibility),
+            accessibilityEnabled,
+            if (accessibilityEnabled) getString(R.string.status_accessibility_enabled) else getString(R.string.status_accessibility_required)
+        )
+        binding.screenCaptureStatus.text = statusLine(
+            getString(R.string.status_screen_capture),
+            captureGranted,
+            if (captureGranted) getString(R.string.status_capture_granted) else getString(R.string.status_capture_not_granted)
+        )
+        binding.agentStatus.text = "${getString(R.string.status_agent)}：${localizedConnectionState()}${agentDetailText()}"
+        binding.deviceStatus.text = "${getString(R.string.status_device)}：${getString(R.string.device_status_format, configStore.getOrCreateDeviceId(), display.width, display.height, display.rotation)}"
         binding.blockingStatus.text = blockingStatus(hasConfig, accessibilityEnabled, captureGranted)
         binding.startAgent.isEnabled = hasConfig
     }
 
     private fun blockingStatus(hasConfig: Boolean, accessibilityEnabled: Boolean, captureGranted: Boolean): String {
         val issues = mutableListOf<String>()
-        if (!hasConfig) issues.add("Configure WebSocket URL")
-        if (!accessibilityEnabled) issues.add("Enable Accessibility")
-        if (!captureGranted) issues.add("Grant screen capture before streaming")
-        SonicLinkStatus.lastStreamEvent?.let { issues.add("Stream event: $it") }
+        if (!hasConfig) issues.add(getString(R.string.issue_configure_ws))
+        if (!accessibilityEnabled) issues.add(getString(R.string.issue_enable_accessibility))
+        if (!captureGranted) issues.add(getString(R.string.issue_grant_capture))
+        SonicLinkStatus.lastStreamEvent?.let { issues.add(getString(R.string.issue_stream_event, localizedStreamEvent(it))) }
         return if (issues.isEmpty()) {
-            "Ready for Agent connection"
+            getString(R.string.ready_for_agent)
         } else {
-            "Needs attention: ${issues.joinToString("; ")}"
+            getString(R.string.needs_attention, issues.joinToString("；"))
         }
-    }
-
-    private fun lastHeartbeatText(): String {
-        if (SonicLinkStatus.lastHeartbeatAt == 0L) {
-            return ""
-        }
-        val formatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-        return " - heartbeat ${formatter.format(Date(SonicLinkStatus.lastHeartbeatAt))}"
     }
 
     private fun requestNotificationPermissionIfNeeded() {
@@ -181,8 +183,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun statusLine(label: String, ok: Boolean, detail: String): String {
-        val marker = if (ok) "OK" else "NEEDS ATTENTION"
-        return "$label: $marker - $detail"
+        val marker = if (ok) getString(R.string.status_ok) else getString(R.string.status_needs_attention)
+        return "$label：$marker - $detail"
+    }
+
+    private fun localizedConnectionState(): String {
+        return when (SonicLinkStatus.connectionState) {
+            SonicLinkConnectionState.CONNECTED -> getString(R.string.sonic_link_status_connected)
+            SonicLinkConnectionState.CONNECTING -> getString(R.string.sonic_link_status_connecting)
+            SonicLinkConnectionState.RECONNECTING -> getString(R.string.sonic_link_status_reconnecting)
+            SonicLinkConnectionState.ERROR -> getString(R.string.sonic_link_status_error)
+            SonicLinkConnectionState.DISCONNECTED -> getString(R.string.sonic_link_status_disconnected)
+            SonicLinkConnectionState.STOPPED -> getString(R.string.sonic_link_status_stopped)
+        }
+    }
+
+    private fun agentDetailText(): String {
+        SonicLinkStatus.lastError?.let { return " ($it)" }
+        if (SonicLinkStatus.connectionState != SonicLinkConnectionState.CONNECTED) {
+            return ""
+        }
+        return if (SonicLinkStatus.lastHeartbeatAt == 0L) {
+            " - ${getString(R.string.heartbeat_waiting)}"
+        } else {
+            " - ${getString(R.string.heartbeat_active)}"
+        }
+    }
+
+    private fun localizedStreamEvent(event: String): String {
+        return when (event) {
+            "stream_started" -> "投屏已开始"
+            "stream_stopped" -> "投屏已停止"
+            "screen_capture_revoked" -> "屏幕采集授权已被系统收回"
+            "stream_format_changed" -> "投屏画面格式已更新"
+            else -> event
+        }
     }
 
     companion object {

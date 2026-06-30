@@ -14,6 +14,7 @@ import android.text.TextUtils
 import android.view.DisplayCutout
 import android.view.WindowManager
 import android.view.WindowMetrics
+import android.util.DisplayMetrics
 import androidx.core.content.getSystemService
 import org.cloud.sonic.android.ScreenCaptureState
 import org.cloud.sonic.android.accessibility.SonicLinkAccessibilityService
@@ -41,14 +42,10 @@ object SonicLinkDeviceInfo {
     }
 
     fun displayInfo(context: Context): SonicLinkDisplayInfo {
-        val metrics = context.resources.displayMetrics
         val windowManager = context.getSystemService<WindowManager>()
-        val rotation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            context.display?.rotation ?: 0
-        } else {
-            @Suppress("DEPRECATION")
-            windowManager?.defaultDisplay?.rotation ?: 0
-        }
+        val metrics = realDisplayMetrics(context, windowManager)
+        @Suppress("DEPRECATION")
+        val rotation = windowManager?.defaultDisplay?.rotation ?: 0
         return SonicLinkDisplayInfo(
             width = metrics.widthPixels,
             height = metrics.heightPixels,
@@ -56,6 +53,19 @@ object SonicLinkDeviceInfo {
             densityDpi = metrics.densityDpi,
             insets = displayInsets(context, windowManager)
         )
+    }
+
+    private fun realDisplayMetrics(context: Context, windowManager: WindowManager?): DisplayMetrics {
+        val metrics = DisplayMetrics()
+        @Suppress("DEPRECATION")
+        val display = windowManager?.defaultDisplay
+        if (display != null) {
+            @Suppress("DEPRECATION")
+            display.getRealMetrics(metrics)
+            return metrics
+        }
+        metrics.setTo(context.resources.displayMetrics)
+        return metrics
     }
 
     private fun displayInsets(context: Context, windowManager: WindowManager?): SonicLinkDisplayInsets {
