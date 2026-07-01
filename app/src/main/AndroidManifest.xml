@@ -31,6 +31,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
     <!-- Needed for Android 14 (API level 34) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />

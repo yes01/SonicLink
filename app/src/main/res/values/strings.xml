@@ -63,6 +63,8 @@
     <string name="issue_configure_ws">请配置 WebSocket 地址</string>
     <string name="issue_enable_accessibility">请开启无障碍</string>
     <string name="issue_grant_capture">投屏前请授权屏幕采集</string>
+    <string name="bind_shizuku">一键 Shizuku 提权 (免弹窗录屏)</string>
+    <string name="shizuku_success">Shizuku 提权成功！录屏弹窗已永久免除！</string>
     <string name="issue_stream_event">投屏事件：%1$s</string>
     <string name="ready_for_agent">已准备好连接 Agent</string>
     <string name="needs_attention">需要处理：%1$s</string>

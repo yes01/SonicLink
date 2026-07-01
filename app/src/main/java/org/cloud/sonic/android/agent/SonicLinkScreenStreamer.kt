@@ -69,11 +69,12 @@ class SonicLinkScreenStreamer(
                 "screen_permission_missing",
                 "screen capture permission data is missing; grant screen capture again on the phone"
             )
-        val projectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        mediaProjection = projectionManager.getMediaProjection(ScreenCaptureState.resultCode, data)
-        ScreenCaptureState.markConsumed()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mediaProjection?.registerCallback(projectionCallback, null)
+        if (mediaProjection == null) {
+            val projectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+            mediaProjection = projectionManager.getMediaProjection(ScreenCaptureState.resultCode, data)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mediaProjection?.registerCallback(projectionCallback, null)
+            }
         }
 
         return try {
@@ -98,12 +99,17 @@ class SonicLinkScreenStreamer(
             return SonicLinkControlResult.success("stream stopped")
         }
         isStopping = true
-        releaseStream(cancelRotationWatcher = true, stopProjection = true)
-        ScreenCaptureState.clear()
+        releaseStream(cancelRotationWatcher = true, stopProjection = false)
         SonicLinkStatus.screenStreaming = false
         SonicLinkStatus.lastStreamEvent = "stream_stopped"
         isStopping = false
-        return SonicLinkControlResult.success("stream stopped; screen capture permission must be granted again before the next stream")
+        return SonicLinkControlResult.success("stream stopped")
+    }
+
+    fun destroy() {
+        stop()
+        releaseStream(cancelRotationWatcher = true, stopProjection = true)
+        ScreenCaptureState.clear()
     }
 
     private fun handleProjectionStoppedBySystem() {
@@ -157,20 +163,21 @@ class SonicLinkScreenStreamer(
         }
         streamJob = null
         releaseVideoPipeline()
-        runCatching { mediaProjection?.unregisterCallback(projectionCallback) }
         if (stopProjection) {
+            runCatching { virtualDisplay?.release() }
+            virtualDisplay = null
+            runCatching { mediaProjection?.unregisterCallback(projectionCallback) }
             runCatching { mediaProjection?.stop() }
+            mediaProjection = null
         }
-        mediaProjection = null
     }
 
     private fun releaseVideoPipeline() {
         runCatching { mediaCodec?.signalEndOfInputStream() }
-        runCatching { virtualDisplay?.release() }
+        runCatching { virtualDisplay?.surface = null }
         runCatching { inputSurface?.release() }
         runCatching { mediaCodec?.stop() }
         runCatching { mediaCodec?.release() }
-        virtualDisplay = null
         inputSurface = null
         mediaCodec = null
         codecConfigPayload = null
@@ -203,36 +210,48 @@ class SonicLinkScreenStreamer(
     private fun createVirtualDisplay() {
         val projection = mediaProjection ?: error("media projection is not ready")
         val surface = inputSurface ?: error("encoder surface is not ready")
-        virtualDisplay = projection.createVirtualDisplay(
-            "SonicLinkScreen",
-            config.width,
-            config.height,
-            config.densityDpi,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            surface,
-            null,
-            null
-        )
+        if (virtualDisplay == null) {
+            virtualDisplay = projection.createVirtualDisplay(
+                "SonicLinkScreen",
+                config.width,
+                config.height,
+                config.densityDpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                surface,
+                null,
+                null
+            )
+        } else {
+            virtualDisplay?.resize(config.width, config.height, config.densityDpi)
+            virtualDisplay?.surface = surface
+        }
     }
 
     private suspend fun drainEncoder() {
         val codec = mediaCodec ?: return
         val bufferInfo = MediaCodec.BufferInfo()
-        while (currentCoroutineContext().isActive) {
-            val outputBufferId = codec.dequeueOutputBuffer(bufferInfo, OUTPUT_TIMEOUT_US)
-            when {
-                outputBufferId >= 0 -> {
-                    val outputBuffer = codec.getOutputBuffer(outputBufferId)
-                    if (outputBuffer != null && bufferInfo.size > 0) {
-                        sendPacket(outputBuffer, bufferInfo)
+        try {
+            while (currentCoroutineContext().isActive) {
+                val outputBufferId = codec.dequeueOutputBuffer(bufferInfo, OUTPUT_TIMEOUT_US)
+                when {
+                    outputBufferId >= 0 -> {
+                        val outputBuffer = codec.getOutputBuffer(outputBufferId)
+                        if (outputBuffer != null && bufferInfo.size > 0) {
+                            sendPacket(outputBuffer, bufferInfo)
+                        }
+                        codec.releaseOutputBuffer(outputBufferId, false)
                     }
-                    codec.releaseOutputBuffer(outputBufferId, false)
-                }
-                outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                    val format = codec.outputFormat
-                    sendCodecConfig(format)
+                    outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
+                        val format = codec.outputFormat
+                        sendCodecConfig(format)
+                    }
                 }
             }
+        } catch (e: IllegalStateException) {
+            SLog.w("drainEncoder stopped: codec released or stopped (\${e.message})")
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            SLog.e("drainEncoder error", e)
         }
     }
 
@@ -332,8 +351,8 @@ class SonicLinkScreenStreamer(
     data class StreamConfig(
         val width: Int = 0,
         val height: Int = 0,
-        val bitRate: Int = 600_000,
-        val frameRate: Int = 8,
+        val bitRate: Int = 2_000_000,
+        val frameRate: Int = 24,
         val iFrameIntervalSeconds: Int = 1,
         val rotation: Int = 0,
         val densityDpi: Int = 0
@@ -343,28 +362,29 @@ class SonicLinkScreenStreamer(
             val sourceWidth = if (width > 0) width else display.width
             val sourceHeight = if (height > 0) height else display.height
             val scale = (MAX_EDGE.toFloat() / maxOf(sourceWidth, sourceHeight)).coerceAtMost(1f)
-            val normalizedWidth = even((sourceWidth * scale).roundToInt())
-            val normalizedHeight = even((sourceHeight * scale).roundToInt())
+            val normalizedWidth = mod16((sourceWidth * scale).roundToInt())
+            val normalizedHeight = mod16((sourceHeight * scale).roundToInt())
             return copy(
-                width = normalizedWidth.coerceAtLeast(2),
-                height = normalizedHeight.coerceAtLeast(2),
-                bitRate = bitRate.coerceIn(300_000, 8_000_000),
-                frameRate = frameRate.coerceIn(5, 30),
+                width = normalizedWidth.coerceAtLeast(16),
+                height = normalizedHeight.coerceAtLeast(16),
+                bitRate = bitRate.coerceIn(300_000, 20_000_000),
+                frameRate = frameRate.coerceIn(5, 60),
                 iFrameIntervalSeconds = iFrameIntervalSeconds.coerceIn(1, 10),
                 rotation = display.rotation,
                 densityDpi = if (densityDpi > 0) densityDpi else display.densityDpi
             )
         }
 
-        private fun even(value: Int): Int {
-            return if (value % 2 == 0) value else value - 1
+        private fun mod16(value: Int): Int {
+            val rem = value % 16
+            return if (rem == 0) value else value - rem
         }
     }
 
     companion object {
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val OUTPUT_TIMEOUT_US = 10_000L
-        private const val MAX_EDGE = 720
+        private const val MAX_EDGE = 1080
         private const val DISPLAY_WATCH_INTERVAL_MS = 1_000L
         private const val MAX_WEBSOCKET_QUEUE_BYTES = 512L * 1024L
     }

@@ -13,7 +13,7 @@ object ScreenCaptureState {
     var consumed: Boolean = false
 
     val hasPermission: Boolean
-        get() = resultCode != 0 && data != null && !consumed
+        get() = resultCode != 0 && data != null
 
     fun grant(resultCode: Int, data: Intent) {
         this.resultCode = resultCode

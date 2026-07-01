@@ -33,7 +33,7 @@ object SonicLinkDeviceInfo {
             apiLevel = Build.VERSION.SDK_INT,
             apkVersion = appVersion(context),
             display = displayInfo(context),
-            accessibilityEnabled = isAccessibilityEnabled(context),
+            accessibilityEnabled = org.cloud.sonic.android.accessibility.SonicLinkAccessibilityState.service != null || isAccessibilityEnabled(context),
             screenCaptureGranted = ScreenCaptureState.hasPermission,
             screenStreaming = SonicLinkStatus.screenStreaming,
             batteryPercent = batteryPercent(context),

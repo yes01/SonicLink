@@ -16,6 +16,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.blankj.utilcode.util.AppUtils
 import com.gyf.immersionbar.ktx.immersionBar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.cloud.sonic.android.agent.SonicLinkAgentService
 import org.cloud.sonic.android.agent.SonicLinkConfig
 import org.cloud.sonic.android.agent.SonicLinkConfigStore
@@ -23,6 +26,7 @@ import org.cloud.sonic.android.agent.SonicLinkConnectionState
 import org.cloud.sonic.android.agent.SonicLinkDeviceInfo
 import org.cloud.sonic.android.agent.SonicLinkStatus
 import org.cloud.sonic.android.databinding.ActivityMainBinding
+import rikka.shizuku.Shizuku
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -61,8 +65,15 @@ class MainActivity : AppCompatActivity() {
         renderStatus()
     }
 
+    private val shizukuListener = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+        if (requestCode == org.cloud.sonic.android.utils.ShizukuManager.REQUEST_CODE_SHIZUKU && grantResult == PackageManager.PERMISSION_GRANTED) {
+            executeShizukuAppOps()
+        }
+    }
+
     override fun onStart() {
         super.onStart()
+        try { Shizuku.addRequestPermissionResultListener(shizukuListener) } catch (e: Exception) {}
         val filter = IntentFilter(SonicLinkAgentService.ACTION_STATUS_CHANGED)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(statusReceiver, filter, RECEIVER_NOT_EXPORTED)
@@ -72,6 +83,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
+        try { Shizuku.removeRequestPermissionResultListener(shizukuListener) } catch (e: Exception) {}
         unregisterReceiver(statusReceiver)
         super.onStop()
     }
@@ -106,6 +118,25 @@ class MainActivity : AppCompatActivity() {
         binding.stopAgent.setOnClickListener {
             SonicLinkAgentService.stop(this)
             renderStatus()
+        }
+        binding.bindShizuku.setOnClickListener {
+            if (org.cloud.sonic.android.utils.ShizukuManager.hasPermission()) {
+                executeShizukuAppOps()
+            } else {
+                org.cloud.sonic.android.utils.ShizukuManager.requestPermission(this)
+            }
+        }
+    }
+
+    private fun executeShizukuAppOps() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val success = org.cloud.sonic.android.utils.ShizukuManager.grantAppOpsPermissions(packageName)
+            if (success) {
+                Toast.makeText(this@MainActivity, R.string.shizuku_success, Toast.LENGTH_LONG).show()
+                renderStatus()
+            } else {
+                Toast.makeText(this@MainActivity, "Shizuku 提权失败，请检查相关日志", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

@@ -57,6 +57,8 @@ class SonicLinkAgentService : Service() {
     private var shouldRun = false
     private var isStopping = false
     private var reconnectAttempt = 0
+    private var installingApkFile: java.io.File? = null
+    private var apkOutputStream: java.io.FileOutputStream? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -157,6 +159,10 @@ class SonicLinkAgentService : Service() {
                 handleMessage(text)
             }
 
+            override fun onMessage(webSocket: WebSocket, bytes: okio.ByteString) {
+                apkOutputStream?.write(bytes.toByteArray())
+            }
+
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                 webSocket.close(code, reason)
             }
@@ -236,11 +242,13 @@ class SonicLinkAgentService : Service() {
                 "start_stream" -> respond(requestId, startStream(payload))
                 "stop_stream" -> {
                     val result = screenStreamer.stop()
-                    updateForegroundServiceType(includeMediaProjection = false)
+                    // do not drop foreground type here, otherwise mediaProjection token will be silently revoked by OS
                     notifyStatusChanged()
                     respond(requestId, result)
                 }
                 "get_status" -> sendEnvelope("status", requestId, SonicLinkDeviceInfo.collect(this@SonicLinkAgentService, configStore.getConfig()))
+                "install_apk_start" -> respond(requestId, executeInstallApkStart(payload))
+                "install_apk_end" -> respond(requestId, executeInstallApkEnd(payload))
                 else -> sendError(requestId, "unsupported_command", "unsupported command: $type")
             }
         }
@@ -349,7 +357,7 @@ class SonicLinkAgentService : Service() {
     private fun accessibilityService() = SonicLinkAccessibilityState.service
 
     private fun accessibilityUnavailable(): SonicLinkControlResult {
-        return SonicLinkControlResult.failure("accessibility_disabled", "SonicLink accessibility service is not enabled")
+        return SonicLinkControlResult.failure("accessibility_unavailable", "Accessibility service is not running or connected")
     }
 
     private fun validatePoint(x: Float, y: Float): SonicLinkControlResult? {
@@ -510,6 +518,39 @@ class SonicLinkAgentService : Service() {
 
     private fun JsonObject.int(name: String, defaultValue: Int): Int {
         return get(name)?.takeIf { !it.isJsonNull }?.asInt ?: defaultValue
+    }
+
+    private fun executeInstallApkStart(payload: JsonObject): SonicLinkControlResult {
+        return try {
+            val filename = payload.string("filename")
+            val name = if (filename.isEmpty()) "temp.apk" else filename
+            installingApkFile = java.io.File(cacheDir, "installing_$name")
+            apkOutputStream = java.io.FileOutputStream(installingApkFile)
+            SonicLinkControlResult.success("Ready to receive chunks")
+        } catch (e: Exception) {
+            SonicLinkControlResult.failure("start_failed", e.message ?: "error")
+        }
+    }
+
+    private suspend fun executeInstallApkEnd(payload: JsonObject): SonicLinkControlResult {
+        return try {
+            apkOutputStream?.flush()
+            apkOutputStream?.close()
+            apkOutputStream = null
+
+            val file = installingApkFile ?: return SonicLinkControlResult.failure("no_file", "No APK file received")
+            val output = org.cloud.sonic.android.utils.ShizukuManager.installApk(file.absolutePath)
+            file.delete()
+            installingApkFile = null
+
+            if (output.contains("Success", ignoreCase = true)) {
+                SonicLinkControlResult.success(output)
+            } else {
+                SonicLinkControlResult.failure("install_failed", output)
+            }
+        } catch (e: Exception) {
+            SonicLinkControlResult.failure("end_failed", e.message ?: "error")
+        }
     }
 
     companion object {

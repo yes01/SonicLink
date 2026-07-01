@@ -231,6 +231,15 @@
                     android:layout_marginTop="10dp"
                     android:text="@string/request_screen_capture"
                     android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/bindShizuku"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="@color/sonic_link_warning"
+                    android:text="@string/bind_shizuku"
+                    android:textAllCaps="false" />
             </LinearLayout>
 
             <Button
