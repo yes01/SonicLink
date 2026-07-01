@@ -120,10 +120,14 @@ class MainActivity : AppCompatActivity() {
             renderStatus()
         }
         binding.bindShizuku.setOnClickListener {
-            if (org.cloud.sonic.android.utils.ShizukuManager.hasPermission()) {
-                executeShizukuAppOps()
+            if (org.cloud.sonic.android.utils.ShizukuManager.isShizukuAvailable()) {
+                if (org.cloud.sonic.android.utils.ShizukuManager.hasPermission()) {
+                    executeShizukuAppOps()
+                } else {
+                    org.cloud.sonic.android.utils.ShizukuManager.requestPermission(this)
+                }
             } else {
-                org.cloud.sonic.android.utils.ShizukuManager.requestPermission(this)
+                Toast.makeText(this, "Shizuku 未连接。若刚重装本应用，请去桌面手动打开一次 Shizuku App 即可恢复连接！", Toast.LENGTH_LONG).show()
             }
         }
     }
