@@ -530,6 +530,7 @@ class SonicLinkAgentService : Service() {
 
     private fun executeInstallApkStart(payload: JsonObject): SonicLinkControlResult {
         return try {
+            SonicLinkStatus.isInstallingApk = true
             val size = payload.get("size")?.asLong ?: 0L
             if (size <= 0L) {
                 return SonicLinkControlResult.failure("invalid_size", "APK size is missing or invalid")
@@ -568,6 +569,7 @@ class SonicLinkAgentService : Service() {
             installOutputStream = null
             installOutputReader = null
             installErrorReader = null
+            SonicLinkStatus.isInstallingApk = false
 
             val resultStr = output.toString().trim()
             if (resultStr.contains("Success", ignoreCase = true)) {
@@ -576,6 +578,7 @@ class SonicLinkAgentService : Service() {
                 SonicLinkControlResult.failure("install_failed", resultStr)
             }
         } catch (e: Exception) {
+            SonicLinkStatus.isInstallingApk = false
             SonicLinkControlResult.failure("end_failed", e.message ?: "error")
         }
     }

@@ -33,4 +33,7 @@ object SonicLinkStatus {
 
     @Volatile
     var screenCaptureRevokedAt: Long = 0L
+
+    @Volatile
+    var isInstallingApk: Boolean = false
 }

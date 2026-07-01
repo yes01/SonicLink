@@ -19,7 +19,62 @@ class SonicLinkAccessibilityService : AccessibilityService() {
         SLog.i("SonicLink accessibility service connected")
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
+    private val autoClickTexts = setOf("继续安装", "允许", "确定", "安装", "我已了解风险", "无视风险安装", "继续")
+
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (!org.cloud.sonic.android.agent.SonicLinkStatus.isInstallingApk) return
+
+        val node = event?.source ?: return
+        val pkg = event.packageName?.toString() ?: ""
+        
+        if (pkg.contains("packageinstaller") || pkg == "com.vivo.secime.service" || pkg.contains("securitycenter")) {
+            checkCheckboxes(node)
+            findAndClickNode(node, autoClickTexts)
+        }
+    }
+
+    private fun checkCheckboxes(node: AccessibilityNodeInfo) {
+        if (node.className?.contains("CheckBox") == true && !node.isChecked) {
+            if (node.isClickable) {
+                node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            } else {
+                node.parent?.takeIf { it.isClickable }?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            }
+        }
+        for (i in 0 until node.childCount) {
+            node.getChild(i)?.let { child ->
+                checkCheckboxes(child)
+                child.recycle()
+            }
+        }
+    }
+
+    private fun findAndClickNode(node: AccessibilityNodeInfo, texts: Set<String>): Boolean {
+        if (node.text != null && texts.any { node.text.toString().contains(it, ignoreCase = true) }) {
+            if (node.isClickable) {
+                node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                return true
+            } else {
+                node.parent?.let { parent ->
+                    if (parent.isClickable) {
+                        parent.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                        return true
+                    }
+                }
+            }
+        }
+        for (i in 0 until node.childCount) {
+            val child = node.getChild(i)
+            if (child != null) {
+                if (findAndClickNode(child, texts)) {
+                    child.recycle()
+                    return true
+                }
+                child.recycle()
+            }
+        }
+        return false
+    }
 
     override fun onInterrupt() {
         SLog.w("SonicLink accessibility service interrupted")
