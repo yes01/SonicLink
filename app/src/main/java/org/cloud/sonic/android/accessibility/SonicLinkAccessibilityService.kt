@@ -19,15 +19,22 @@ class SonicLinkAccessibilityService : AccessibilityService() {
         SLog.i("SonicLink accessibility service connected")
     }
 
-    private val autoClickTexts = setOf("继续安装", "允许", "确定", "安装", "我已了解风险", "无视风险安装", "继续")
+    private val autoClickTexts = setOf("继续安装", "允许", "确定", "安装", "我已了解风险", "无视风险安装", "继续", "立即开始")
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (!org.cloud.sonic.android.agent.SonicLinkStatus.isInstallingApk) return
-
         val node = event?.source ?: return
         val pkg = event.packageName?.toString() ?: ""
         
-        if (pkg.contains("packageinstaller") || pkg == "com.vivo.secime.service" || pkg.contains("securitycenter")) {
+        // Auto-click Screen Capture / MediaProjection dialogs
+        if (pkg.contains("systemui") || pkg.contains("permissioncontroller")) {
+            checkCheckboxes(node)
+            findAndClickNode(node, setOf("允许", "立即开始", "Start now", "Allow"))
+        }
+
+        if (!org.cloud.sonic.android.agent.SonicLinkStatus.isInstallingApk) return
+        
+        // Auto-click APK installation dialogs
+        if (pkg.contains("packageinstaller") || pkg == "com.vivo.secime.service" || pkg.contains("securitycenter") || pkg.contains("systemui")) {
             checkCheckboxes(node)
             findAndClickNode(node, autoClickTexts)
         }

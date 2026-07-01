@@ -136,7 +136,8 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.Main).launch {
             val success = org.cloud.sonic.android.utils.ShizukuManager.grantAppOpsPermissions(packageName)
             if (success) {
-                Toast.makeText(this@MainActivity, R.string.shizuku_success, Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, "提权成功！正在自动拉起免弹窗授权...", Toast.LENGTH_LONG).show()
+                startActivity(Intent(this@MainActivity, ScreenCaptureActivity::class.java))
                 renderStatus()
             } else {
                 Toast.makeText(this@MainActivity, "Shizuku 提权失败，请检查相关日志", Toast.LENGTH_SHORT).show()
