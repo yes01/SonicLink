@@ -38,6 +38,8 @@ import org.cloud.sonic.android.accessibility.SonicLinkTouchStroke
 import org.cloud.sonic.android.utils.SLog
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
+import kotlinx.coroutines.withContext
+import rikka.shizuku.Shizuku
 
 class SonicLinkAgentService : Service() {
     private val gson = Gson()
@@ -57,8 +59,10 @@ class SonicLinkAgentService : Service() {
     private var shouldRun = false
     private var isStopping = false
     private var reconnectAttempt = 0
-    private var installingApkFile: java.io.File? = null
-    private var apkOutputStream: java.io.FileOutputStream? = null
+    private var installProcess: java.lang.Process? = null
+    private var installOutputStream: java.io.OutputStream? = null
+    private var installOutputReader: java.io.BufferedReader? = null
+    private var installErrorReader: java.io.BufferedReader? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -160,7 +164,11 @@ class SonicLinkAgentService : Service() {
             }
 
             override fun onMessage(webSocket: WebSocket, bytes: okio.ByteString) {
-                apkOutputStream?.write(bytes.toByteArray())
+                try {
+                    installOutputStream?.write(bytes.toByteArray())
+                } catch (e: Exception) {
+                    SLog.e("Failed to write bytes to install output stream", e)
+                }
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
@@ -522,10 +530,15 @@ class SonicLinkAgentService : Service() {
 
     private fun executeInstallApkStart(payload: JsonObject): SonicLinkControlResult {
         return try {
-            val filename = payload.string("filename")
-            val name = if (filename.isEmpty()) "temp.apk" else filename
-            installingApkFile = java.io.File(cacheDir, "installing_$name")
-            apkOutputStream = java.io.FileOutputStream(installingApkFile)
+            val size = payload.get("size")?.asLong ?: 0L
+            if (size <= 0L) {
+                return SonicLinkControlResult.failure("invalid_size", "APK size is missing or invalid")
+            }
+            val process = Shizuku.newProcess(arrayOf("cmd", "package", "install", "-S", size.toString()), null, null)
+            installProcess = process
+            installOutputStream = process.outputStream
+            installOutputReader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
+            installErrorReader = java.io.BufferedReader(java.io.InputStreamReader(process.errorStream))
             SonicLinkControlResult.success("Ready to receive chunks")
         } catch (e: Exception) {
             SonicLinkControlResult.failure("start_failed", e.message ?: "error")
@@ -534,19 +547,33 @@ class SonicLinkAgentService : Service() {
 
     private suspend fun executeInstallApkEnd(payload: JsonObject): SonicLinkControlResult {
         return try {
-            apkOutputStream?.flush()
-            apkOutputStream?.close()
-            apkOutputStream = null
+            installOutputStream?.flush()
+            installOutputStream?.close()
+            
+            val process = installProcess ?: return SonicLinkControlResult.failure("no_process", "Installation process not started")
+            
+            val output = java.lang.StringBuilder()
+            var line: String?
+            withContext(Dispatchers.IO) {
+                while (installOutputReader?.readLine().also { line = it } != null) {
+                    output.append(line).append("\n")
+                }
+                while (installErrorReader?.readLine().also { line = it } != null) {
+                    output.append("Error: ").append(line).append("\n")
+                }
+                process.waitFor()
+            }
+            
+            installProcess = null
+            installOutputStream = null
+            installOutputReader = null
+            installErrorReader = null
 
-            val file = installingApkFile ?: return SonicLinkControlResult.failure("no_file", "No APK file received")
-            val output = org.cloud.sonic.android.utils.ShizukuManager.installApk(file.absolutePath)
-            file.delete()
-            installingApkFile = null
-
-            if (output.contains("Success", ignoreCase = true)) {
-                SonicLinkControlResult.success(output)
+            val resultStr = output.toString().trim()
+            if (resultStr.contains("Success", ignoreCase = true)) {
+                SonicLinkControlResult.success(resultStr)
             } else {
-                SonicLinkControlResult.failure("install_failed", output)
+                SonicLinkControlResult.failure("install_failed", resultStr)
             }
         } catch (e: Exception) {
             SonicLinkControlResult.failure("end_failed", e.message ?: "error")
