@@ -69,15 +69,14 @@ class SonicLinkScreenStreamer(
                 "screen_permission_missing",
                 "screen capture permission data is missing; grant screen capture again on the phone"
             )
-        if (mediaProjection == null) {
-            val projectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            mediaProjection = projectionManager.getMediaProjection(ScreenCaptureState.resultCode, data)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                mediaProjection?.registerCallback(projectionCallback, null)
-            }
-        }
-
         return try {
+            if (mediaProjection == null) {
+                val projectionManager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+                mediaProjection = projectionManager.getMediaProjection(ScreenCaptureState.resultCode, data)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    mediaProjection?.registerCallback(projectionCallback, android.os.Handler(android.os.Looper.getMainLooper()))
+                }
+            }
             prepareEncoder()
             createVirtualDisplay()
             SonicLinkStatus.screenStreaming = true
@@ -89,6 +88,9 @@ class SonicLinkScreenStreamer(
             SonicLinkControlResult.success("stream started")
         } catch (e: Exception) {
             SLog.e("Failed to start screen stream", e)
+            if (e is SecurityException) {
+                ScreenCaptureState.clear()
+            }
             stop()
             SonicLinkControlResult.failure("stream_start_failed", e.message ?: "failed to start stream")
         }

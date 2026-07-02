@@ -347,8 +347,8 @@ class SonicLinkAgentService : Service() {
         val config = SonicLinkScreenStreamer.StreamConfig(
             width = payload.int("width", 0),
             height = payload.int("height", 0),
-            bitRate = payload.int("bitRate", 600_000),
-            frameRate = payload.int("frameRate", 8),
+            bitRate = payload.int("bitRate", 2_000_000),
+            frameRate = payload.int("frameRate", 30),
             iFrameIntervalSeconds = payload.int("iFrameIntervalSeconds", 1)
         )
         val foregroundResult = updateForegroundServiceType(includeMediaProjection = true)
