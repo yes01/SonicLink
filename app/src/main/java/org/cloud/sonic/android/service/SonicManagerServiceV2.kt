@@ -127,7 +127,7 @@ class SonicManagerServiceV2 : Service(), TcpServerListener {
         //启动Socket服务
         startSocket()
         linkTimeOutStop()
-        return super.onStartCommand(intent, START_REDELIVER_INTENT, startId)
+        return START_REDELIVER_INTENT
     }
 
     private fun linkTimeOutStop() {

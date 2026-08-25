@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="page_padding_horizontal">16dp</dimen>
+    <dimen name="page_padding_vertical">12dp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="item_spacing">10dp</dimen>
+    <dimen name="button_min_height">44dp</dimen>
+    <dimen name="small_button_min_height">36dp</dimen>
+</resources>

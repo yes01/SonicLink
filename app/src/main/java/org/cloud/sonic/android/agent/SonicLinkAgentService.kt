@@ -194,6 +194,7 @@ class SonicLinkAgentService : Service() {
                     type = "heartbeat",
                     payload = SonicLinkDeviceInfo.collect(this@SonicLinkAgentService, configStore.getConfig())
                 )
+                notifyStatusChanged()
                 delay(HEARTBEAT_INTERVAL_MS)
             }
         }
@@ -507,7 +508,27 @@ class SonicLinkAgentService : Service() {
         (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(channel)
     }
 
-    private fun notifyStatusChanged() {
+    private var lastBroadcastState: SonicLinkConnectionState? = null
+    private var lastBroadcastError: String? = null
+    private var lastBroadcastStreamEvent: String? = null
+    private var lastBroadcastHeartbeatAt: Long = 0L
+
+    private fun notifyStatusChanged(force: Boolean = false) {
+        val currentState = SonicLinkStatus.connectionState
+        val currentError = SonicLinkStatus.lastError
+        val currentStreamEvent = SonicLinkStatus.lastStreamEvent
+        val currentHeartbeatAt = SonicLinkStatus.lastHeartbeatAt
+
+        if (!force && currentState == lastBroadcastState && currentError == lastBroadcastError &&
+            currentStreamEvent == lastBroadcastStreamEvent && currentHeartbeatAt == lastBroadcastHeartbeatAt
+        ) {
+            return
+        }
+        lastBroadcastState = currentState
+        lastBroadcastError = currentError
+        lastBroadcastStreamEvent = currentStreamEvent
+        lastBroadcastHeartbeatAt = currentHeartbeatAt
+
         val intent = Intent(ACTION_STATUS_CHANGED).setPackage(packageName)
         sendBroadcast(intent)
     }

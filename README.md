@@ -95,3 +95,7 @@ org.cloud.sonic.android.STOP
 ```bash
 ./gradlew connectedAndroidTest
 ```
+
+## AI 缺陷助手手机附件
+
+SonicLink 支持通过一次性二维码绑定测试平台当前缺陷草稿，并从手机图片、视频或文件页面上传附件。部署、迁移和局域网地址要求见 [手机附件协同文档](docs/mobile-defect-attachments.md)。

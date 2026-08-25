@@ -1,18 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- Brand Primary -->
+    <color name="brand_primary">#0284C7</color>
+    <color name="brand_primary_dark">#0369A1</color>
+    <color name="brand_primary_light">#E0F2FE</color>
+    <color name="brand_secondary">#0D9488</color>
+    <color name="brand_accent">#6366F1</color>
+
+    <!-- Neutrals & Backgrounds -->
+    <color name="bg_page">#F8FAFC</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_card_secondary">#F1F5F9</color>
+    <color name="bg_overlay">#80000000</color>
+    <color name="divider_color">#E2E8F0</color>
+    <color name="border_light">#E2E8F0</color>
+    <color name="border_focus">#0284C7</color>
+
+    <!-- Typography -->
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_tertiary">#94A3B8</color>
+    <color name="text_on_primary">#FFFFFF</color>
+
+    <!-- Semantic Status -->
+    <color name="status_success">#10B981</color>
+    <color name="status_success_bg">#ECFDF5</color>
+    <color name="status_warning">#F59E0B</color>
+    <color name="status_warning_bg">#FFFBEB</color>
+    <color name="status_error">#EF4444</color>
+    <color name="status_error_bg">#FEF2F2</color>
+    <color name="status_info">#3B82F6</color>
+    <color name="status_info_bg">#EFF6FF</color>
+
+    <!-- Compatibility Aliases -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="auto_bg">#FFFFFFFF</color>
-    <color name="sonic_link_bg">#FFF8F7F2</color>
+    <color name="sonic_link_bg">#F8FAFC</color>
     <color name="sonic_link_panel">#FFFFFFFF</color>
-    <color name="sonic_link_text">#FF1F2933</color>
-    <color name="sonic_link_muted">#FF68717D</color>
-    <color name="sonic_link_border">#FFE4E1D8</color>
-    <color name="sonic_link_primary">#FF126A5E</color>
-    <color name="sonic_link_warning">#FFB45309</color>
+    <color name="sonic_link_text">#0F172A</color>
+    <color name="sonic_link_muted">#64748B</color>
+    <color name="sonic_link_border">#E2E8F0</color>
+    <color name="sonic_link_primary">#0284C7</color>
+    <color name="sonic_link_warning">#F59E0B</color>
 </resources>

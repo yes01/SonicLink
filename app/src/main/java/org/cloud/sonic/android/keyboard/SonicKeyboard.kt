@@ -29,6 +29,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
+import androidx.core.content.ContextCompat
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.Utils
 import org.cloud.sonic.android.R
@@ -62,11 +63,12 @@ class SonicKeyboard : InputMethodService() {
             filter.addAction(IME_RECOVER_CLIPBOARD_GET)
             filter.addAction(IME_RECOVER_CLIPBOARD_SET)
             mReceiver = AdbReceiver()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                registerReceiver(mReceiver, filter, RECEIVER_EXPORTED)
-            } else {
-                registerReceiver(mReceiver, filter)
-            }
+            ContextCompat.registerReceiver(
+                this,
+                mReceiver,
+                filter,
+                ContextCompat.RECEIVER_EXPORTED
+            )
         }
         mInputView.setOnClickListener {
             val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)

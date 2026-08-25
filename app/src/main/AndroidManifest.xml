@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- 获取wifi需要 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -19,7 +19,19 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission
@@ -33,14 +45,22 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
-    <!-- Needed for Android 14 (API level 34) -->
+    <!-- Android 14 (API 34) Foreground Services -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
+    <!-- Camera hardware features declaration (optional for TV/emulators/tablets) -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
     <application
         android:name=".App"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:maxAspectRatio="2.4"
@@ -52,38 +72,48 @@
         android:usesCleartextTraffic="true">
 
         <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <provider
             android:name="rikka.shizuku.ShizukuProvider"
             android:authorities="${applicationId}.shizuku"
-            android:multiprocess="false"
             android:enabled="true"
             android:exported="true"
+            android:multiprocess="false"
             android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
-        <activity
-            android:name=".plugin.audioPlugin.AudioActivity"
-            android:exported="true"
-            android:showWhenLocked="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:turnScreenOn="true" />
 
         <meta-data
             android:name="android.max_aspect"
-            android:value="2.4" /> <!-- 适配华为（huawei）刘海屏 -->
+            android:value="2.4" />
         <meta-data
             android:name="android.notch_support"
-            android:value="true" /> <!-- 适配小米（xiaomi）刘海屏 -->
+            android:value="true" />
         <meta-data
             android:name="notch.config"
             android:value="portrait|landscape" />
 
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.Sonicandroidapk"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".SonicServiceActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Sonicandroidapk.Transparent" />
 
         <activity
             android:name=".ScreenCaptureActivity"
@@ -91,8 +121,27 @@
             android:theme="@style/Theme.Sonicandroidapk.Transparent" />
 
         <activity
-            android:name=".SonicServiceActivity"
-            android:exported="true"></activity>
+            android:name=".ui.images.ImagePreviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Sonicandroidapk.Fullscreen" />
+
+        <activity
+            android:name=".ui.videos.VideoPlayerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Sonicandroidapk.Fullscreen" />
+
+        <activity
+            android:name=".ui.qr.QrScanActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Sonicandroidapk.Fullscreen" />
+
+        <activity
+            android:name=".plugin.audioPlugin.AudioActivity"
+            android:exported="true"
+            android:showWhenLocked="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:turnScreenOn="true" />
 
         <activity
             android:name=".plugin.activityPlugin.SearchActivity"
@@ -103,22 +152,24 @@
             android:stateNotNeeded="true">
             <intent-filter>
                 <action android:name="org.cloud.sonic.android.ACTION_IDENTIFY" />
-
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
         <service
             android:name=".service.SonicManagerService"
+            android:enabled="true"
             android:exported="false" />
 
         <service
             android:name=".service.SonicManagerServiceV2"
+            android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
         <service
             android:name=".agent.SonicLinkAgentService"
+            android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync|mediaProjection" />
 
@@ -153,7 +204,6 @@
             android:process=":audioProcess"
             tools:node="replace" />
 
-        <!-- Declares the input method service -->
         <service
             android:name=".keyboard.SonicKeyboard"
             android:label="@string/keyboard_name"

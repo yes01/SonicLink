@@ -1,42 +1,34 @@
 package org.cloud.sonic.android
 
-import android.Manifest
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
+import android.content.res.Configuration
 import android.os.Bundle
-import android.provider.Settings
-import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.blankj.utilcode.util.AppUtils
+import androidx.fragment.app.Fragment
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.gyf.immersionbar.ktx.immersionBar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.cloud.sonic.android.agent.SonicLinkAgentService
-import org.cloud.sonic.android.agent.SonicLinkConfig
 import org.cloud.sonic.android.agent.SonicLinkConfigStore
-import org.cloud.sonic.android.agent.SonicLinkConnectionState
-import org.cloud.sonic.android.agent.SonicLinkDeviceInfo
 import org.cloud.sonic.android.agent.SonicLinkStatus
 import org.cloud.sonic.android.databinding.ActivityMainBinding
-import rikka.shizuku.Shizuku
+import org.cloud.sonic.android.ui.dashboard.DashboardFragment
+import org.cloud.sonic.android.ui.defect.DefectAssistantFragment
+import org.cloud.sonic.android.ui.files.FilesFragment
+import org.cloud.sonic.android.ui.images.ImagesFragment
+import org.cloud.sonic.android.ui.videos.VideosFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var configStore: SonicLinkConfigStore
 
-    private val statusReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            renderStatus()
-        }
-    }
+    private val fragments = listOf(
+        DashboardFragment(),
+        ImagesFragment(),
+        VideosFragment(),
+        FilesFragment(),
+        DefectAssistantFragment()
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,219 +36,75 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         configStore = SonicLinkConfigStore(this)
 
+        val isDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         immersionBar {
-            statusBarColor(R.color.sonic_link_bg)
-            navigationBarColor(R.color.sonic_link_bg)
-            statusBarDarkFont(true)
+            statusBarColor(R.color.bg_page)
+            navigationBarColor(R.color.bg_card)
+            statusBarDarkFont(!isDark)
+            navigationBarDarkIcon(!isDark)
+            fitsSystemWindows(true)
             autoDarkModeEnable(true)
         }
 
-        bindActions()
-        loadConfig()
-        requestNotificationPermissionIfNeeded()
-        renderStatus()
+        setupViewPagerAndNavigation()
+
         if (configStore.getConfig().autoConnect && !SonicLinkStatus.serviceRunning) {
             SonicLinkAgentService.start(this)
         }
-    }
 
-    override fun onResume() {
-        super.onResume()
-        renderStatus()
-    }
-
-    private val shizukuListener = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
-        if (requestCode == org.cloud.sonic.android.utils.ShizukuManager.REQUEST_CODE_SHIZUKU && grantResult == PackageManager.PERMISSION_GRANTED) {
-            executeShizukuAppOps()
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        try { Shizuku.addRequestPermissionResultListener(shizukuListener) } catch (e: Exception) {}
-        val filter = IntentFilter(SonicLinkAgentService.ACTION_STATUS_CHANGED)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(statusReceiver, filter, RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(statusReceiver, filter)
-        }
-    }
-
-    override fun onStop() {
-        try { Shizuku.removeRequestPermissionResultListener(shizukuListener) } catch (e: Exception) {}
-        unregisterReceiver(statusReceiver)
-        super.onStop()
-    }
-
-    private fun bindActions() {
-        binding.saveConfig.setOnClickListener {
-            saveConfig()
-            Toast.makeText(this, R.string.toast_config_saved, Toast.LENGTH_SHORT).show()
-            renderStatus()
-        }
-        binding.openAccessibility.setOnClickListener {
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                Toast.makeText(this, R.string.toast_restricted_settings, Toast.LENGTH_LONG).show()
-            }
-        }
-        binding.requestCapture.setOnClickListener {
-            startActivity(Intent(this, ScreenCaptureActivity::class.java))
-        }
-        binding.openAppSettings.setOnClickListener {
-            startActivity(
-                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.parse("package:$packageName")
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val currentPosition = binding.viewPager.currentItem
+                if (currentPosition == 3) {
+                    val filesFragment = fragments[3] as? FilesFragment
+                    if (filesFragment?.handleBackPressed() == true) {
+                        return
+                    }
                 }
-            )
-        }
-        binding.startAgent.setOnClickListener {
-            saveConfig()
-            SonicLinkAgentService.start(this)
-            renderStatus()
-        }
-        binding.stopAgent.setOnClickListener {
-            SonicLinkAgentService.stop(this)
-            renderStatus()
-        }
-        binding.bindShizuku.setOnClickListener {
-            if (org.cloud.sonic.android.utils.ShizukuManager.isShizukuAvailable()) {
-                if (org.cloud.sonic.android.utils.ShizukuManager.hasPermission()) {
-                    executeShizukuAppOps()
-                } else {
-                    org.cloud.sonic.android.utils.ShizukuManager.requestPermission(this)
+                if (currentPosition != 0) {
+                    binding.viewPager.currentItem = 0
+                    return
                 }
-            } else {
-                Toast.makeText(this, "Shizuku 未连接。若刚重装本应用，请去桌面手动打开一次 Shizuku App 即可恢复连接！", Toast.LENGTH_LONG).show()
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
             }
-        }
+        })
     }
 
-    private fun executeShizukuAppOps() {
-        CoroutineScope(Dispatchers.Main).launch {
-            val success = org.cloud.sonic.android.utils.ShizukuManager.grantAppOpsPermissions(packageName)
-            if (success) {
-                Toast.makeText(this@MainActivity, "提权成功！正在自动拉起免弹窗授权...", Toast.LENGTH_LONG).show()
-                startActivity(Intent(this@MainActivity, ScreenCaptureActivity::class.java))
-                renderStatus()
-            } else {
-                Toast.makeText(this@MainActivity, "Shizuku 提权失败，请检查相关日志", Toast.LENGTH_SHORT).show()
+    private fun setupViewPagerAndNavigation() {
+        binding.viewPager.isUserInputEnabled = false
+        binding.viewPager.adapter = object : FragmentStateAdapter(this) {
+            override fun getItemCount(): Int = fragments.size
+            override fun createFragment(position: Int): Fragment = fragments[position]
+        }
+
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                val itemId = when (position) {
+                    0 -> R.id.nav_dashboard
+                    1 -> R.id.nav_images
+                    2 -> R.id.nav_videos
+                    3 -> R.id.nav_files
+                    4 -> R.id.nav_defect
+                    else -> R.id.nav_dashboard
+                }
+                if (binding.bottomNav.selectedItemId != itemId) {
+                    binding.bottomNav.selectedItemId = itemId
+                }
             }
+        })
+
+        binding.bottomNav.setOnItemSelectedListener { item ->
+            val targetPosition = when (item.itemId) {
+                R.id.nav_dashboard -> 0
+                R.id.nav_images -> 1
+                R.id.nav_videos -> 2
+                R.id.nav_files -> 3
+                R.id.nav_defect -> 4
+                else -> 0
+            }
+            binding.viewPager.setCurrentItem(targetPosition, false)
+            true
         }
-    }
-
-    private fun loadConfig() {
-        val config = configStore.getConfig()
-        binding.serverHost.setText(config.serverHost)
-        binding.httpUrl.setText(config.httpUrl)
-        binding.webSocketUrl.setText(config.webSocketUrl)
-        binding.token.setText(config.token)
-        binding.deviceName.setText(config.deviceName)
-        binding.autoConnect.isChecked = config.autoConnect
-        binding.version.text = getString(R.string.version_label, AppUtils.getAppVersionName())
-    }
-
-    private fun saveConfig() {
-        val config = SonicLinkConfig(
-            serverHost = binding.serverHost.text.toString(),
-            httpUrl = binding.httpUrl.text.toString(),
-            webSocketUrl = binding.webSocketUrl.text.toString(),
-            token = binding.token.text.toString(),
-            deviceName = binding.deviceName.text.toString(),
-            autoConnect = binding.autoConnect.isChecked
-        )
-        configStore.saveConfig(config)
-    }
-
-    private fun renderStatus() {
-        val config = configStore.getConfig()
-        val hasConfig = config.isReady
-        val accessibilityEnabled = SonicLinkDeviceInfo.isAccessibilityEnabled(this)
-        val captureGranted = ScreenCaptureState.hasPermission
-        val display = SonicLinkDeviceInfo.displayInfo(this)
-        binding.configStatus.text = statusLine(
-            getString(R.string.status_platform_address),
-            hasConfig,
-            if (hasConfig) config.webSocketUrl else getString(R.string.status_missing_ws)
-        )
-        binding.accessibilityStatus.text = statusLine(
-            getString(R.string.status_accessibility),
-            accessibilityEnabled,
-            if (accessibilityEnabled) getString(R.string.status_accessibility_enabled) else getString(R.string.status_accessibility_required)
-        )
-        binding.screenCaptureStatus.text = statusLine(
-            getString(R.string.status_screen_capture),
-            captureGranted,
-            if (captureGranted) getString(R.string.status_capture_granted) else getString(R.string.status_capture_not_granted)
-        )
-        binding.agentStatus.text = "${getString(R.string.status_agent)}：${localizedConnectionState()}${agentDetailText()}"
-        binding.deviceStatus.text = "${getString(R.string.status_device)}：${getString(R.string.device_status_format, configStore.getOrCreateDeviceId(), display.width, display.height, display.rotation)}"
-        binding.blockingStatus.text = blockingStatus(hasConfig, accessibilityEnabled, captureGranted)
-        binding.startAgent.isEnabled = hasConfig
-    }
-
-    private fun blockingStatus(hasConfig: Boolean, accessibilityEnabled: Boolean, captureGranted: Boolean): String {
-        val issues = mutableListOf<String>()
-        if (!hasConfig) issues.add(getString(R.string.issue_configure_ws))
-        if (!accessibilityEnabled) issues.add(getString(R.string.issue_enable_accessibility))
-        if (!captureGranted) issues.add(getString(R.string.issue_grant_capture))
-        SonicLinkStatus.lastStreamEvent?.let { issues.add(getString(R.string.issue_stream_event, localizedStreamEvent(it))) }
-        return if (issues.isEmpty()) {
-            getString(R.string.ready_for_agent)
-        } else {
-            getString(R.string.needs_attention, issues.joinToString("；"))
-        }
-    }
-
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            return
-        }
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_POST_NOTIFICATIONS)
-    }
-
-    private fun statusLine(label: String, ok: Boolean, detail: String): String {
-        val marker = if (ok) getString(R.string.status_ok) else getString(R.string.status_needs_attention)
-        return "$label：$marker - $detail"
-    }
-
-    private fun localizedConnectionState(): String {
-        return when (SonicLinkStatus.connectionState) {
-            SonicLinkConnectionState.CONNECTED -> getString(R.string.sonic_link_status_connected)
-            SonicLinkConnectionState.CONNECTING -> getString(R.string.sonic_link_status_connecting)
-            SonicLinkConnectionState.RECONNECTING -> getString(R.string.sonic_link_status_reconnecting)
-            SonicLinkConnectionState.ERROR -> getString(R.string.sonic_link_status_error)
-            SonicLinkConnectionState.DISCONNECTED -> getString(R.string.sonic_link_status_disconnected)
-            SonicLinkConnectionState.STOPPED -> getString(R.string.sonic_link_status_stopped)
-        }
-    }
-
-    private fun agentDetailText(): String {
-        SonicLinkStatus.lastError?.let { return " ($it)" }
-        if (SonicLinkStatus.connectionState != SonicLinkConnectionState.CONNECTED) {
-            return ""
-        }
-        return if (SonicLinkStatus.lastHeartbeatAt == 0L) {
-            " - ${getString(R.string.heartbeat_waiting)}"
-        } else {
-            " - ${getString(R.string.heartbeat_active)}"
-        }
-    }
-
-    private fun localizedStreamEvent(event: String): String {
-        return when (event) {
-            "stream_started" -> "投屏已开始"
-            "stream_stopped" -> "投屏已停止"
-            "screen_capture_revoked" -> "屏幕采集授权已被系统收回"
-            "stream_format_changed" -> "投屏画面格式已更新"
-            else -> event
-        }
-    }
-
-    companion object {
-        private const val REQUEST_POST_NOTIFICATIONS = 2001
     }
 }
