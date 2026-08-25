@@ -13,7 +13,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import org.cloud.sonic.android.MainActivity
 import org.cloud.sonic.android.R
 import org.cloud.sonic.android.databinding.FragmentVideosBinding
 import org.cloud.sonic.android.model.MediaItem
@@ -57,19 +59,27 @@ class VideosFragment : Fragment() {
                 startActivity(intent)
             },
             onSelectionChanged = { count ->
-                if (count > 0) {
-                    binding.bottomActionBar.visibility = View.VISIBLE
-                    binding.tvSelectedCount.text = getString(R.string.selected_count_format, count)
-                } else {
-                    binding.bottomActionBar.visibility = View.GONE
-                }
+                renderSelectionState(count)
             }
         )
 
-        binding.recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
-        binding.recyclerView.adapter = adapter
+        val recyclerView = binding.recyclerView
+        recyclerView.layoutManager = GridLayoutManager(requireContext(), 1)
+        recyclerView.adapter = adapter
+        recyclerView.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+            if (right - left != oldRight - oldLeft) {
+                updateGridSpanCount(recyclerView)
+            }
+        }
+        recyclerView.post { updateGridSpanCount(recyclerView) }
 
         binding.swipeRefresh.setOnRefreshListener { loadVideos() }
+
+        binding.btnSelect.setOnClickListener {
+            if (adapter.isSelectionMode) adapter.clearSelection() else adapter.enterSelectionMode()
+        }
+
+        binding.btnSelectAll.setOnClickListener { adapter.selectAll() }
 
         binding.btnGrantPermission.setOnClickListener {
             val perms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -137,12 +147,16 @@ class VideosFragment : Fragment() {
 
         val config = platformRepo.getConfig()
         if (!config.isBound) {
-            Toast.makeText(requireContext(), "请先在「缺陷协同」Tab 绑定测试平台账号", Toast.LENGTH_LONG).show()
+            Snackbar.make(binding.root, "请先绑定测试平台账号", Snackbar.LENGTH_LONG)
+                .setAction(R.string.action_go_to_binding) {
+                    (activity as? MainActivity)?.openDefectTab()
+                }
+                .show()
             return
         }
 
         binding.btnUploadPlatform.isEnabled = false
-        binding.btnUploadPlatform.text = "正在上传..."
+        binding.btnUploadPlatform.setText(R.string.sending)
 
         viewLifecycleOwner.lifecycleScope.launch {
             var successCount = 0
@@ -158,15 +172,37 @@ class VideosFragment : Fragment() {
             }
 
             binding.btnUploadPlatform.isEnabled = true
-            binding.btnUploadPlatform.text = "发送到缺陷助手"
+            binding.btnUploadPlatform.setText(R.string.send_to_defect_assistant)
             adapter.clearSelection()
 
-            Toast.makeText(
-                requireContext(),
-                "上传完成：成功 $successCount 个，失败 $failCount 个（已推送到 AI 缺陷助手）",
-                Toast.LENGTH_LONG
-            ).show()
+            val message = if (failCount == 0) {
+                "已发送 $successCount 个附件到缺陷助手"
+            } else {
+                "发送完成：成功 $successCount 个，失败 $failCount 个"
+            }
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                .setAction(R.string.nav_defect) {
+                    (activity as? MainActivity)?.openDefectTab()
+                }
+                .show()
         }
+    }
+
+    private fun renderSelectionState(count: Int) {
+        binding.btnSelect.setText(if (adapter.isSelectionMode) R.string.action_cancel_selection else R.string.action_select)
+        binding.bottomActionBar.visibility = if (adapter.isSelectionMode) View.VISIBLE else View.GONE
+        binding.tvSelectedCount.text = getString(R.string.selected_count_format, count)
+        binding.btnUploadPlatform.isEnabled = count > 0
+        binding.btnSelectAll.isEnabled = adapter.itemCount > 0 && count < adapter.itemCount
+    }
+
+    private fun updateGridSpanCount(recyclerView: androidx.recyclerview.widget.RecyclerView) {
+        val minCellWidth = resources.getDimensionPixelSize(R.dimen.media_video_min_cell_width)
+        val availableWidth = recyclerView.width - recyclerView.paddingLeft - recyclerView.paddingRight
+        if (availableWidth <= 0 || minCellWidth <= 0) return
+        val spanCount = (availableWidth / minCellWidth).coerceIn(1, 6)
+        val layoutManager = recyclerView.layoutManager as? GridLayoutManager ?: return
+        if (layoutManager.spanCount != spanCount) layoutManager.spanCount = spanCount
     }
 
     override fun onDestroyView() {

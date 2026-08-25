@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_marginVertical="3dp"
     app:cardBackgroundColor="@color/bg_card"
-    app:cardCornerRadius="12dp"
+    app:cardCornerRadius="@dimen/component_corner_radius"
     app:cardElevation="0dp"
     app:strokeColor="@color/border_light"
     app:strokeWidth="1dp">
@@ -24,6 +24,7 @@
             android:layout_height="40dp"
             android:background="@drawable/bg_badge_pill"
             android:padding="9dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_folder"
             app:tint="@color/brand_primary" />
 
@@ -56,11 +57,11 @@
 
         <ImageView
             android:id="@+id/btnUpload"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/icon_touch_target"
+            android:layout_height="@dimen/icon_touch_target"
             android:background="?selectableItemBackgroundBorderless"
-            android:contentDescription="上传至缺陷助手"
-            android:padding="8dp"
+            android:contentDescription="@string/action_upload_file"
+            android:padding="12dp"
             android:src="@drawable/ic_cloud_upload"
             app:tint="@color/brand_primary" />
     </LinearLayout>

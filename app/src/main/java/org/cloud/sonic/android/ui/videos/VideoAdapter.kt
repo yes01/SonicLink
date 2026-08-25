@@ -22,6 +22,19 @@ class VideoAdapter(
 
     fun getSelectedItems(): List<MediaItem> = currentList.filter { it.isSelected }
 
+    fun enterSelectionMode() {
+        isSelectionMode = true
+        notifyItemRangeChanged(0, currentList.size)
+        onSelectionChanged(getSelectedItems().size)
+    }
+
+    fun selectAll() {
+        isSelectionMode = true
+        currentList.forEach { it.isSelected = true }
+        notifyItemRangeChanged(0, currentList.size)
+        onSelectionChanged(currentList.size)
+    }
+
     fun clearSelection() {
         isSelectionMode = false
         currentList.forEach { it.isSelected = false }
@@ -45,6 +58,7 @@ class VideoAdapter(
                 .centerCrop()
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(binding.ivThumbnail)
+            binding.ivThumbnail.contentDescription = item.name
 
             binding.tvDuration.visibility = View.VISIBLE
             binding.tvDuration.text = formatDuration(item.durationMs)
@@ -66,7 +80,8 @@ class VideoAdapter(
             binding.root.setOnClickListener {
                 if (isSelectionMode) {
                     item.isSelected = !item.isSelected
-                    notifyItemChanged(bindingAdapterPosition)
+                    val position = bindingAdapterPosition
+                    if (position != RecyclerView.NO_POSITION) notifyItemChanged(position)
                     val count = getSelectedItems().size
                     if (count == 0) isSelectionMode = false
                     onSelectionChanged(count)

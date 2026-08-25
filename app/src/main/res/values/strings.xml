@@ -36,6 +36,17 @@
     <string name="hint_device_name">设备显示名称</string>
     <string name="auto_connect_after_launch">应用启动后自动连接 Agent</string>
     <string name="save_configuration">保存配置</string>
+    <string name="connection_settings_title">连接设置</string>
+    <string name="connection_settings_summary">配置平台地址、鉴权信息与设备名称</string>
+    <string name="edit_connection_settings">编辑连接设置</string>
+    <string name="error_websocket_required">请输入 WebSocket 地址</string>
+    <string name="error_websocket_scheme">地址必须以 ws:// 或 wss:// 开头</string>
+    <string name="dashboard_service_title">SonicLink Agent 远程服务</string>
+    <string name="dashboard_service_summary">支持远控点击、屏幕回传以及 AI 缺陷助手附件协同</string>
+    <string name="dashboard_shizuku_title">Shizuku 免弹窗录屏</string>
+    <string name="dashboard_shizuku_summary">系统级提权，无需每次弹窗确认</string>
+    <string name="dashboard_app_settings_summary">管理权限与电池白名单保活</string>
+    <string name="dashboard_diagnostics_title">设备与诊断信息</string>
     <string name="section_readiness">运行与授权准备</string>
     <string name="open_accessibility">开启服务</string>
     <string name="request_screen_capture">去授权</string>
@@ -72,16 +83,35 @@
 
     <!-- Navigation Tabs -->
     <string name="nav_dashboard">控制台</string>
+    <string name="nav_media">媒体</string>
     <string name="nav_images">图片</string>
     <string name="nav_videos">视频</string>
     <string name="nav_files">文件</string>
     <string name="nav_defect">缺陷协同</string>
+    <string name="nav_defect_short">协同</string>
     <string name="nav_defect_sync">缺陷协同</string>
+    <string name="action_select">选择</string>
+    <string name="action_cancel_selection">取消</string>
+    <string name="action_go_to_binding">去绑定</string>
+    <string name="action_retry">重试</string>
+    <string name="action_refresh_status">刷新状态</string>
+    <string name="action_open_system_app">用系统应用打开</string>
+    <string name="action_copy_file_path">复制文件路径</string>
+    <string name="action_go_to_settings">前往设置</string>
+    <string name="action_upload_file">上传至缺陷助手</string>
+    <string name="send_to_defect_assistant">发送到缺陷助手</string>
+    <string name="send_to_defect_assistant_preview">发送至缺陷助手</string>
+    <string name="sending">发送中...</string>
+    <string name="media_images">图片</string>
+    <string name="media_videos">视频</string>
 
     <!-- Images Page -->
     <string name="tab_all_images">全部照片</string>
     <string name="tab_screenshots">Bug 截屏专区</string>
     <string name="no_images_found">暂无图片数据</string>
+    <string name="images_permission_title">需要相册访问权限</string>
+    <string name="images_permission_summary">授权后可浏览手机截屏与照片</string>
+    <string name="images_permission_action">授权相册访问</string>
     <string name="upload_to_defect_assistant">发送到 AI 缺陷助手</string>
     <string name="action_select_all">全选</string>
     <string name="action_deselect_all">取消全选</string>
@@ -96,6 +126,9 @@
     <string name="tab_all_videos">全部视频</string>
     <string name="tab_screen_records">录屏专区</string>
     <string name="no_videos_found">暂无视频文件</string>
+    <string name="videos_permission_title">需要视频访问权限</string>
+    <string name="videos_permission_summary">授权后可浏览手机录屏与视频文件</string>
+    <string name="videos_permission_action">授权视频访问</string>
 
     <!-- Files Page -->
     <string name="storage_overview">存储空间概览</string>
@@ -106,6 +139,12 @@
     <string name="category_downloads">下载目录</string>
     <string name="no_files_found">此目录下没有文件</string>
     <string name="file_detail_title">文件详情</string>
+    <string name="storage_permission_title">需要「所有文件访问权限」</string>
+    <string name="storage_permission_summary">请在系统设置中允许管理所有文件</string>
+    <string name="storage_permission_action">去授权</string>
+    <string name="all_files">全部文件</string>
+    <string name="path_back_description">点击返回上一级目录</string>
+    <string name="default_storage_path">/storage/emulated/0</string>
 
     <!-- Defect Assistant & Chat -->
     <string name="platform_binding_title">测试平台账号绑定</string>
@@ -113,10 +152,14 @@
     <string name="platform_unbound_status">未绑定测试平台账号</string>
     <string name="scan_qr_to_bind">扫码快速绑定</string>
     <string name="manual_bind_config">手动配置</string>
-    <string name="recent_uploads_title">直传历史与附件池</string>
-    <string name="lan_chat_title">本机协同备注</string>
+    <string name="recent_uploads_title">附件历史</string>
+    <string name="lan_chat_title">协同备注</string>
     <string name="send_message_hint">发送消息或拖入文件...</string>
     <string name="action_send">发送</string>
+    <string name="send_message_description">发送消息</string>
     <string name="action_copy_markdown">复制 Markdown</string>
     <string name="markdown_copied">Markdown 链接已复制到剪贴板</string>
+    <string name="scan_instruction">将二维码完整放入扫描框内</string>
+    <string name="torch_open">打开手电筒</string>
+    <string name="torch_close">关闭手电筒</string>
 </resources>

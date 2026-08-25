@@ -47,6 +47,7 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:padding="4dp"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_security"
                     app:tint="@color/status_warning" />
 
@@ -60,7 +61,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="需要「所有文件访问权限」"
+                        android:text="@string/storage_permission_title"
                         android:textColor="@color/text_primary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -69,21 +70,19 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:text="请在系统设置中允许管理所有文件"
+                        android:text="@string/storage_permission_summary"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnGrantStorage"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.SonicLink.Button.Secondary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minHeight="@dimen/small_button_min_height"
                     android:paddingHorizontal="12dp"
-                    android:text="去授权"
-                    android:textSize="12sp"
-                    app:cornerRadius="8dp" />
+                    android:text="@string/storage_permission_action"
+                    android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -107,13 +106,11 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:text="@string/storage_overview"
                         android:textColor="@color/text_primary"
                         android:textSize="14sp"
@@ -121,8 +118,9 @@
 
                     <TextView
                         android:id="@+id/tvStorageText"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -156,7 +154,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:text="全部文件" />
+                    android:text="@string/all_files" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipDownloads"
@@ -198,8 +196,11 @@
             android:ellipsize="start"
             android:paddingHorizontal="10dp"
             android:paddingVertical="6dp"
+            android:minHeight="44dp"
+            android:gravity="center_vertical"
+            android:contentDescription="@string/path_back_description"
             android:singleLine="true"
-            android:text="/storage/emulated/0"
+            android:text="@string/default_storage_path"
             android:textColor="@color/brand_primary"
             android:textSize="12sp" />
     </LinearLayout>

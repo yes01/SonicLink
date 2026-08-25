@@ -12,10 +12,10 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.blankj.utilcode.util.AppUtils
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,7 +23,6 @@ import org.cloud.sonic.android.R
 import org.cloud.sonic.android.ScreenCaptureActivity
 import org.cloud.sonic.android.ScreenCaptureState
 import org.cloud.sonic.android.agent.SonicLinkAgentService
-import org.cloud.sonic.android.agent.SonicLinkConfig
 import org.cloud.sonic.android.agent.SonicLinkConfigStore
 import org.cloud.sonic.android.agent.SonicLinkConnectionState
 import org.cloud.sonic.android.agent.SonicLinkDeviceInfo
@@ -75,6 +74,7 @@ class DashboardFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        loadConfig()
         renderStatus()
     }
 
@@ -116,19 +116,17 @@ class DashboardFragment : Fragment() {
     private fun bindActions() {
         binding.refreshStatus.setOnClickListener {
             renderStatus()
-            Toast.makeText(requireContext(), "状态已刷新", Toast.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "状态已刷新", Snackbar.LENGTH_SHORT).show()
         }
 
-        binding.saveConfig.setOnClickListener {
-            saveConfig()
-            Toast.makeText(requireContext(), R.string.toast_config_saved, Toast.LENGTH_SHORT).show()
-            renderStatus()
+        binding.openConnectionSettings.setOnClickListener {
+            startActivity(Intent(requireContext(), ConnectionSettingsActivity::class.java))
         }
 
         binding.openAccessibility.setOnClickListener {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                Toast.makeText(requireContext(), R.string.toast_restricted_settings, Toast.LENGTH_LONG).show()
+                Snackbar.make(binding.root, R.string.toast_restricted_settings, Snackbar.LENGTH_LONG).show()
             }
         }
 
@@ -145,7 +143,6 @@ class DashboardFragment : Fragment() {
         }
 
         binding.startAgent.setOnClickListener {
-            saveConfig()
             SonicLinkAgentService.start(requireContext())
             renderStatus()
         }
@@ -163,10 +160,10 @@ class DashboardFragment : Fragment() {
                     ShizukuManager.requestPermission(requireActivity())
                 }
             } else {
-                Toast.makeText(
-                    requireContext(),
-                    "Shizuku 未连接。若刚重装本应用，请去桌面手动打开一次 Shizuku App 即可恢复连接！",
-                    Toast.LENGTH_LONG
+                Snackbar.make(
+                    binding.root,
+                    "Shizuku 未连接，请先打开 Shizuku 应用恢复连接",
+                    Snackbar.LENGTH_LONG
                 ).show()
             }
         }
@@ -178,36 +175,23 @@ class DashboardFragment : Fragment() {
             val success = ShizukuManager.grantAppOpsPermissions(ctx.packageName)
             if (!isAdded) return@launch
             if (success) {
-                Toast.makeText(requireContext(), "提权成功！正在自动拉起免弹窗授权...", Toast.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "提权成功，正在请求录屏授权", Snackbar.LENGTH_LONG).show()
                 startActivity(Intent(requireContext(), ScreenCaptureActivity::class.java))
                 renderStatus()
             } else {
-                Toast.makeText(requireContext(), "Shizuku 提权失败，请检查相关日志", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Shizuku 提权失败，请检查相关日志", Snackbar.LENGTH_LONG).show()
             }
         }
     }
 
     private fun loadConfig() {
         val config = configStore.getConfig()
-        binding.serverHost.setText(config.serverHost)
-        binding.httpUrl.setText(config.httpUrl)
-        binding.webSocketUrl.setText(config.webSocketUrl)
-        binding.token.setText(config.token)
-        binding.deviceName.setText(config.deviceName)
-        binding.autoConnect.isChecked = config.autoConnect
         binding.version.text = getString(R.string.version_label, AppUtils.getAppVersionName())
-    }
-
-    private fun saveConfig() {
-        val config = SonicLinkConfig(
-            serverHost = binding.serverHost.text.toString(),
-            httpUrl = binding.httpUrl.text.toString(),
-            webSocketUrl = binding.webSocketUrl.text.toString(),
-            token = binding.token.text.toString(),
-            deviceName = binding.deviceName.text.toString(),
-            autoConnect = binding.autoConnect.isChecked
-        )
-        configStore.saveConfig(config)
+        binding.connectionSettingsSummary.text = if (config.isReady) {
+            "${config.webSocketUrl}\n设备：${config.deviceName.ifBlank { "未命名设备" }}"
+        } else {
+            getString(R.string.connection_settings_summary)
+        }
     }
 
     fun renderStatus() {
@@ -269,6 +253,8 @@ class DashboardFragment : Fragment() {
         if (binding.startAgent.isEnabled != hasConfig) {
             binding.startAgent.isEnabled = hasConfig
         }
+        binding.startAgent.visibility = if (SonicLinkStatus.serviceRunning) View.GONE else View.VISIBLE
+        binding.stopAgent.visibility = if (SonicLinkStatus.serviceRunning) View.VISIBLE else View.GONE
     }
 
     private fun blockingStatus(hasConfig: Boolean, accessibilityEnabled: Boolean, captureGranted: Boolean): String {

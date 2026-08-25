@@ -10,15 +10,17 @@ import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import org.cloud.sonic.android.MainActivity
 import org.cloud.sonic.android.R
+import org.cloud.sonic.android.databinding.BottomSheetFileActionsBinding
 import org.cloud.sonic.android.databinding.FragmentFilesBinding
 import org.cloud.sonic.android.model.FileItem
 import org.cloud.sonic.android.repository.FileRepository
@@ -35,6 +37,7 @@ class FilesFragment : Fragment() {
     private var currentDirectory: File = Environment.getExternalStorageDirectory()
     private var isCategoryMode = false
     private var currentCategory: String = ""
+    private val uploadsInProgress = mutableSetOf<String>()
 
     private val manageStorageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         checkPermissionAndLoad()
@@ -82,6 +85,8 @@ class FilesFragment : Fragment() {
                 loadDirectory(currentDirectory)
             }
         }
+
+        binding.tvPath.setOnClickListener { handleBackPressed() }
 
         bindCategoryChips()
         checkPermissionAndLoad()
@@ -163,22 +168,26 @@ class FilesFragment : Fragment() {
 
     private fun showFileActionsDialog(item: FileItem) {
         val context = requireContext()
-        val actions = arrayOf("发送到 AI 缺陷助手", "用系统应用打开", "复制文件路径")
-
-        MaterialAlertDialogBuilder(context)
-            .setTitle(item.name)
-            .setItems(actions) { _, which ->
-                when (which) {
-                    0 -> uploadSingleFile(item.file)
-                    1 -> openFileWithSystem(item.file, item.mimeType)
-                    2 -> {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("path", item.path))
-                        Toast.makeText(context, "路径已复制到剪贴板", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-            .show()
+        val sheetBinding = BottomSheetFileActionsBinding.inflate(layoutInflater)
+        val dialog = BottomSheetDialog(context)
+        dialog.setContentView(sheetBinding.root)
+        sheetBinding.tvTitle.text = item.name
+        sheetBinding.tvPath.text = item.path
+        sheetBinding.btnUpload.setOnClickListener {
+            dialog.dismiss()
+            uploadSingleFile(item.file)
+        }
+        sheetBinding.btnOpen.setOnClickListener {
+            dialog.dismiss()
+            openFileWithSystem(item.file, item.mimeType)
+        }
+        sheetBinding.btnCopyPath.setOnClickListener {
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("path", item.path))
+            dialog.dismiss()
+            Snackbar.make(binding.root, "文件路径已复制", Snackbar.LENGTH_SHORT).show()
+        }
+        dialog.show()
     }
 
     private fun openFileWithSystem(file: File, mimeType: String) {
@@ -194,24 +203,38 @@ class FilesFragment : Fragment() {
             }
             startActivity(Intent.createChooser(intent, "打开文件"))
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "无法打开此文件: ${e.message}", Toast.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "无法打开此文件：${e.message}", Snackbar.LENGTH_LONG).show()
         }
     }
 
     private fun uploadSingleFile(file: File) {
         val config = platformRepo.getConfig()
         if (!config.isBound) {
-            Toast.makeText(requireContext(), "请先在「缺陷协同」Tab 绑定测试平台账号", Toast.LENGTH_LONG).show()
+            Snackbar.make(binding.root, "请先绑定测试平台账号", Snackbar.LENGTH_LONG)
+                .setAction(R.string.action_go_to_binding) {
+                    (activity as? MainActivity)?.openDefectTab()
+                }
+                .show()
             return
         }
+        if (!uploadsInProgress.add(file.absolutePath)) return
 
-        Toast.makeText(requireContext(), "正在上传 ${file.name} 到 AI 缺陷助手...", Toast.LENGTH_SHORT).show()
+        val progress = Snackbar.make(binding.root, "正在发送 ${file.name}", Snackbar.LENGTH_INDEFINITE)
+        progress.show()
         viewLifecycleOwner.lifecycleScope.launch {
             val res = platformRepo.uploadAttachment(file)
+            uploadsInProgress.remove(file.absolutePath)
+            progress.dismiss()
             res.onSuccess {
-                Toast.makeText(requireContext(), "上传成功！已推送到 AI 缺陷助手", Toast.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "已发送到缺陷助手", Snackbar.LENGTH_LONG)
+                    .setAction(R.string.nav_defect) {
+                        (activity as? MainActivity)?.openDefectTab()
+                    }
+                    .show()
             }.onFailure { err ->
-                Toast.makeText(requireContext(), "上传失败: ${err.message}", Toast.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "发送失败：${err.message}", Snackbar.LENGTH_LONG)
+                    .setAction(R.string.action_retry) { uploadSingleFile(file) }
+                    .show()
             }
         }
     }

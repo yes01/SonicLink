@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="page_padding_horizontal">16dp</dimen>
-    <dimen name="page_padding_vertical">12dp</dimen>
-    <dimen name="card_corner_radius">16dp</dimen>
-    <dimen name="card_padding">16dp</dimen>
-    <dimen name="item_spacing">10dp</dimen>
-    <dimen name="button_min_height">44dp</dimen>
-    <dimen name="small_button_min_height">36dp</dimen>
+    <dimen name="page_padding_horizontal">12dp</dimen>
+    <dimen name="page_padding_vertical">8dp</dimen>
+    <dimen name="card_corner_radius">8dp</dimen>
+    <dimen name="card_padding">12dp</dimen>
+    <dimen name="item_spacing">8dp</dimen>
+    <dimen name="button_min_height">48dp</dimen>
+    <dimen name="small_button_min_height">44dp</dimen>
+    <dimen name="icon_touch_target">48dp</dimen>
+    <dimen name="component_corner_radius">8dp</dimen>
+    <dimen name="navigation_max_width">640dp</dimen>
+    <dimen name="media_image_min_cell_width">104dp</dimen>
+    <dimen name="media_video_min_cell_width">148dp</dimen>
+    <dimen name="media_action_bar_margin">6dp</dimen>
+    <dimen name="media_action_bar_padding">10dp</dimen>
 </resources>

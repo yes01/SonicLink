@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_page"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/page_padding_horizontal"
+        android:layout_marginTop="12dp"
+        android:text="@string/nav_media"
+        android:textColor="@color/text_primary"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/mediaToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_marginHorizontal="@dimen/page_padding_horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="4dp"
+        app:checkedButton="@id/btnImages"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnImages"
+            style="@style/Widget.SonicLink.Button.Outlined"
+            android:layout_width="128dp"
+            android:layout_height="match_parent"
+            android:text="@string/media_images"
+            app:icon="@drawable/ic_nav_images"
+            app:iconGravity="textStart" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnVideos"
+            style="@style/Widget.SonicLink.Button.Outlined"
+            android:layout_width="128dp"
+            android:layout_height="match_parent"
+            android:text="@string/media_videos"
+            app:icon="@drawable/ic_nav_videos"
+            app:iconGravity="textStart" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/mediaPager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>

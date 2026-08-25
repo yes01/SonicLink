@@ -9,13 +9,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -41,11 +42,11 @@ class DefectAssistantFragment : Fragment() {
                 viewLifecycleOwner.lifecycleScope.launch {
                     platformRepo.pairWithQrCode(qrText)
                         .onSuccess {
-                            Toast.makeText(requireContext(), "绑定成功！当前缺陷草稿已关联", Toast.LENGTH_LONG).show()
+                            Snackbar.make(binding.root, "绑定成功，当前缺陷草稿已关联", Snackbar.LENGTH_LONG).show()
                             renderBindingCard()
                         }
                         .onFailure { error ->
-                            Toast.makeText(requireContext(), error.message ?: "绑定失败", Toast.LENGTH_LONG).show()
+                            Snackbar.make(binding.root, error.message ?: "绑定失败", Snackbar.LENGTH_LONG).show()
                         }
                 }
             }
@@ -67,7 +68,7 @@ class DefectAssistantFragment : Fragment() {
                 val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clip = ClipData.newPlainText("markdown", markdown)
                 clipboard.setPrimaryClip(clip)
-                Toast.makeText(requireContext(), R.string.markdown_copied, Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, R.string.markdown_copied, Snackbar.LENGTH_SHORT).show()
             }
         )
 
@@ -120,6 +121,10 @@ class DefectAssistantFragment : Fragment() {
                 binding.etChatInput.setText("")
             }
         }
+        binding.btnSendChat.isEnabled = false
+        binding.etChatInput.doAfterTextChanged { text ->
+            binding.btnSendChat.isEnabled = !text.isNullOrBlank()
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             chatRepo.messagesFlow.collectLatest { list ->
@@ -149,12 +154,14 @@ class DefectAssistantFragment : Fragment() {
             binding.tvBindingStatus.text = getString(R.string.platform_bound_status, userDisplay)
             binding.tvBindingStatus.setTextColor(ContextCompat.getColor(context, R.color.status_success))
             binding.tvServerUrl.text = "服务器: ${config.serverUrl} · 项目 ${config.defaultProjectId}"
-            binding.btnManualConfig.text = "解除绑定"
+            binding.btnScanQr.text = "重新绑定"
+            binding.btnManualConfig.text = "管理绑定"
         } else {
             binding.tvBindingStatus.text = getString(R.string.platform_unbound_status)
             binding.tvBindingStatus.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
             binding.tvServerUrl.text = "请在电脑端 AI 缺陷助手点击“手机”，再扫描配对二维码"
-            binding.btnManualConfig.text = "绑定说明"
+            binding.btnScanQr.text = getString(R.string.scan_qr_to_bind)
+            binding.btnManualConfig.text = "查看绑定说明"
         }
     }
 
@@ -177,10 +184,10 @@ class DefectAssistantFragment : Fragment() {
                     platformRepo.revokeBinding()
                         .onSuccess {
                             renderBindingCard()
-                            Toast.makeText(context, "设备绑定已解除", Toast.LENGTH_SHORT).show()
+                            Snackbar.make(binding.root, "设备绑定已解除", Snackbar.LENGTH_SHORT).show()
                         }
                         .onFailure { error ->
-                            Toast.makeText(context, error.message ?: "解除绑定失败", Toast.LENGTH_LONG).show()
+                            Snackbar.make(binding.root, error.message ?: "解除绑定失败", Snackbar.LENGTH_LONG).show()
                         }
                 }
             }

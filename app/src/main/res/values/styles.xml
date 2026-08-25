@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.SonicLink.Button.Primary" parent="Widget.Material3.Button">
+        <item name="android:minHeight">@dimen/button_min_height</item>
+        <item name="cornerRadius">@dimen/component_corner_radius</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="Widget.SonicLink.Button.Secondary" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:minHeight">@dimen/small_button_min_height</item>
+        <item name="cornerRadius">@dimen/component_corner_radius</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="Widget.SonicLink.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">@dimen/small_button_min_height</item>
+        <item name="cornerRadius">@dimen/component_corner_radius</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+</resources>

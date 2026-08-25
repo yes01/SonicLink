@@ -40,17 +40,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="v2.1.0"
+                    android:text="@string/version"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
 
             <ImageView
                 android:id="@+id/refreshStatus"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
+                android:layout_width="@dimen/icon_touch_target"
+                android:layout_height="@dimen/icon_touch_target"
                 android:background="@drawable/bg_badge_pill"
-                android:contentDescription="刷新状态"
+                android:contentDescription="@string/action_refresh_status"
                 android:padding="9dp"
                 android:src="@drawable/ic_refresh"
                 app:tint="@color/brand_primary" />
@@ -84,7 +84,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="SonicLink Agent 远程服务"
+                        android:text="@string/dashboard_service_title"
                         android:textColor="@color/brand_primary_dark"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -96,7 +96,7 @@
                         android:background="@drawable/bg_rounded_card"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
-                        android:text="未连接"
+                        android:text="@string/sonic_link_status_disconnected"
                         android:textColor="@color/brand_primary_dark"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -108,7 +108,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:lineSpacingExtra="2dp"
-                    android:text="支持远控点击、屏幕回传以及 AI 缺陷助手附件协同"
+                    android:text="@string/dashboard_service_summary"
                     android:textColor="@color/brand_primary_dark"
                     android:textSize="13sp" />
 
@@ -121,29 +121,27 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/startAgent"
+                        style="@style/Widget.SonicLink.Button.Primary"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="6dp"
+                        android:layout_marginEnd="0dp"
                         android:layout_weight="1"
-                        android:minHeight="@dimen/button_min_height"
                         android:paddingHorizontal="8dp"
                         android:text="@string/start_agent"
                         android:textSize="14sp"
-                        android:textStyle="bold"
-                        app:cornerRadius="12dp" />
+                        android:textStyle="bold" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/stopAgent"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.SonicLink.Button.Outlined"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
+                        android:layout_marginStart="0dp"
                         android:layout_weight="1"
-                        android:minHeight="@dimen/button_min_height"
                         android:paddingHorizontal="8dp"
                         android:text="@string/stop_agent"
-                        android:textSize="14sp"
-                        app:cornerRadius="12dp" />
+                        android:textColor="@color/status_error"
+                        app:strokeColor="@color/status_error" />
                 </LinearLayout>
 
                 <!-- Auto Connect Switch Row -->
@@ -209,6 +207,7 @@
                         android:layout_height="38dp"
                         android:background="@drawable/bg_badge_pill"
                         android:padding="8dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_accessibility"
                         app:tint="@color/brand_primary" />
 
@@ -238,14 +237,14 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/openAccessibility"
-                        style="@style/Widget.Material3.Button.TonalButton"
+                        style="@style/Widget.SonicLink.Button.Secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:minHeight="@dimen/small_button_min_height"
                         android:paddingHorizontal="14dp"
                         android:text="@string/open_accessibility"
                         android:textSize="12sp"
-                        app:cornerRadius="10dp" />
+                        />
                 </LinearLayout>
 
                 <View
@@ -267,6 +266,7 @@
                         android:layout_height="38dp"
                         android:background="@drawable/bg_badge_pill"
                         android:padding="8dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_screen_share"
                         app:tint="@color/brand_primary" />
 
@@ -296,14 +296,14 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/requestCapture"
-                        style="@style/Widget.Material3.Button.TonalButton"
+                        style="@style/Widget.SonicLink.Button.Secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:minHeight="@dimen/small_button_min_height"
                         android:paddingHorizontal="14dp"
                         android:text="@string/request_screen_capture"
                         android:textSize="12sp"
-                        app:cornerRadius="10dp" />
+                        />
                 </LinearLayout>
 
                 <View
@@ -325,6 +325,7 @@
                         android:layout_height="38dp"
                         android:background="@drawable/bg_badge_pill"
                         android:padding="8dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_rocket"
                         app:tint="@color/brand_primary" />
 
@@ -338,7 +339,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Shizuku 免弹窗录屏"
+                            android:text="@string/dashboard_shizuku_title"
                             android:textColor="@color/text_primary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -347,21 +348,21 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="系统级提权，无需每次弹窗确认"
+                            android:text="@string/dashboard_shizuku_summary"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/bindShizuku"
-                        style="@style/Widget.Material3.Button.TonalButton"
+                        style="@style/Widget.SonicLink.Button.Secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:minHeight="@dimen/small_button_min_height"
                         android:paddingHorizontal="14dp"
-                        android:text="一键提权"
+                        android:text="@string/bind_shizuku"
                         android:textSize="12sp"
-                        app:cornerRadius="10dp" />
+                        />
                 </LinearLayout>
 
                 <View
@@ -383,6 +384,7 @@
                         android:layout_height="38dp"
                         android:background="@drawable/bg_badge_pill"
                         android:padding="8dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_settings"
                         app:tint="@color/brand_primary" />
 
@@ -405,26 +407,26 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="管理权限与电池白名单保活"
+                            android:text="@string/dashboard_app_settings_summary"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/openAppSettings"
-                        style="@style/Widget.Material3.Button.TonalButton"
+                        style="@style/Widget.SonicLink.Button.Secondary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:minHeight="@dimen/small_button_min_height"
                         android:paddingHorizontal="14dp"
-                        android:text="前往设置"
+                        android:text="@string/action_go_to_settings"
                         android:textSize="12sp"
-                        app:cornerRadius="10dp" />
+                        />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 3. Desktop Access & Platform Config Card -->
+        <!-- 3. Connection settings entry -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -449,89 +451,23 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                <TextView
+                    android:id="@+id/connectionSettingsSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/connection_settings_summary"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/openConnectionSettings"
+                    style="@style/Widget.SonicLink.Button.Secondary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:hint="服务器 Host">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/serverHost"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textUri"
-                        android:textSize="13sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:hint="HTTP URL">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/httpUrl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textUri"
-                        android:textSize="13sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:hint="WebSocket URL">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/webSocketUrl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textUri"
-                        android:textSize="13sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:hint="Token">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/token"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="13sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:hint="设备显示名称">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/deviceName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="13sp" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/saveConfig"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:minHeight="@dimen/button_min_height"
-                    android:text="@string/save_configuration"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    app:cornerRadius="12dp" />
+                    android:text="@string/edit_connection_settings"
+                    app:icon="@drawable/ic_settings" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -555,7 +491,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="设备与诊断信息"
+                    android:text="@string/dashboard_diagnostics_title"
                     android:textColor="@color/text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />

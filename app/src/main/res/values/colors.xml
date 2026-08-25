@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand Primary -->
-    <color name="brand_primary">#0284C7</color>
-    <color name="brand_primary_dark">#0369A1</color>
-    <color name="brand_primary_light">#E0F2FE</color>
-    <color name="brand_secondary">#0D9488</color>
-    <color name="brand_accent">#6366F1</color>
+    <color name="brand_primary">#0E7FA8</color>
+    <color name="brand_primary_dark">#086985</color>
+    <color name="brand_primary_light">#DDF1F5</color>
+    <color name="brand_secondary">#176C6B</color>
+    <color name="brand_accent">#C4633F</color>
 
     <!-- Neutrals & Backgrounds -->
-    <color name="bg_page">#F8FAFC</color>
-    <color name="bg_card">#FFFFFF</color>
-    <color name="bg_card_secondary">#F1F5F9</color>
+    <color name="bg_page">#EDF2F2</color>
+    <color name="bg_card">#FBFDFD</color>
+    <color name="bg_card_secondary">#F3F7F7</color>
     <color name="bg_overlay">#80000000</color>
-    <color name="divider_color">#E2E8F0</color>
-    <color name="border_light">#E2E8F0</color>
-    <color name="border_focus">#0284C7</color>
+    <color name="divider_color">#D8E1E1</color>
+    <color name="border_light">#D8E1E1</color>
+    <color name="border_focus">#0E7FA8</color>
 
     <!-- Typography -->
-    <color name="text_primary">#0F172A</color>
-    <color name="text_secondary">#64748B</color>
-    <color name="text_tertiary">#94A3B8</color>
-    <color name="text_on_primary">#FFFFFF</color>
+    <color name="text_primary">#102326</color>
+    <color name="text_secondary">#4F6266</color>
+    <color name="text_tertiary">#6D7E82</color>
+    <color name="text_on_primary">#F7FCFD</color>
 
     <!-- Semantic Status -->
-    <color name="status_success">#10B981</color>
-    <color name="status_success_bg">#ECFDF5</color>
-    <color name="status_warning">#F59E0B</color>
-    <color name="status_warning_bg">#FFFBEB</color>
-    <color name="status_error">#EF4444</color>
-    <color name="status_error_bg">#FEF2F2</color>
-    <color name="status_info">#3B82F6</color>
-    <color name="status_info_bg">#EFF6FF</color>
+    <color name="status_success">#257A60</color>
+    <color name="status_success_bg">#E4F3EC</color>
+    <color name="status_warning">#A96813</color>
+    <color name="status_warning_bg">#FAEEDB</color>
+    <color name="status_error">#BE4B45</color>
+    <color name="status_error_bg">#F9E8E6</color>
+    <color name="status_info">#0E7FA8</color>
+    <color name="status_info_bg">#DDF1F5</color>
 
     <!-- Compatibility Aliases -->
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="auto_bg">#FFFFFFFF</color>
-    <color name="sonic_link_bg">#F8FAFC</color>
-    <color name="sonic_link_panel">#FFFFFFFF</color>
-    <color name="sonic_link_text">#0F172A</color>
-    <color name="sonic_link_muted">#64748B</color>
-    <color name="sonic_link_border">#E2E8F0</color>
-    <color name="sonic_link_primary">#0284C7</color>
-    <color name="sonic_link_warning">#F59E0B</color>
+    <color name="black">#FF05090A</color>
+    <color name="white">#FFF7FCFD</color>
+    <color name="auto_bg">#FFFBFDFD</color>
+    <color name="sonic_link_bg">#EDF2F2</color>
+    <color name="sonic_link_panel">#FBFDFD</color>
+    <color name="sonic_link_text">#102326</color>
+    <color name="sonic_link_muted">#4F6266</color>
+    <color name="sonic_link_border">#D8E1E1</color>
+    <color name="sonic_link_primary">#0E7FA8</color>
+    <color name="sonic_link_warning">#A96813</color>
 </resources>

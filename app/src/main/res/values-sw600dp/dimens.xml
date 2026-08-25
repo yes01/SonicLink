@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="page_padding_horizontal">32dp</dimen>
+    <dimen name="page_padding_vertical">16dp</dimen>
+    <dimen name="card_padding">20dp</dimen>
+    <dimen name="item_spacing">12dp</dimen>
+    <dimen name="media_image_min_cell_width">120dp</dimen>
+    <dimen name="media_video_min_cell_width">180dp</dimen>
+    <dimen name="media_action_bar_margin">16dp</dimen>
+    <dimen name="media_action_bar_padding">16dp</dimen>
+</resources>

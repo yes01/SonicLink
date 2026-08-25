@@ -5,13 +5,9 @@
         android:icon="@drawable/ic_nav_dashboard"
         android:title="@string/nav_dashboard" />
     <item
-        android:id="@+id/nav_images"
+        android:id="@+id/nav_media"
         android:icon="@drawable/ic_nav_images"
-        android:title="@string/nav_images" />
-    <item
-        android:id="@+id/nav_videos"
-        android:icon="@drawable/ic_nav_videos"
-        android:title="@string/nav_videos" />
+        android:title="@string/nav_media" />
     <item
         android:id="@+id/nav_files"
         android:icon="@drawable/ic_nav_files"
@@ -19,5 +15,5 @@
     <item
         android:id="@+id/nav_defect"
         android:icon="@drawable/ic_nav_defect"
-        android:title="@string/nav_defect" />
+        android:title="@string/nav_defect_short" />
 </menu>

@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_marginVertical="4dp"
     app:cardBackgroundColor="@color/bg_card"
-    app:cardCornerRadius="14dp"
+    app:cardCornerRadius="@dimen/component_corner_radius"
     app:cardElevation="0dp"
     app:strokeColor="@color/border_light"
     app:strokeWidth="1dp">
@@ -61,14 +61,12 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCopyMarkdown"
-                style="@style/Widget.Material3.Button.TonalButton"
+                style="@style/Widget.SonicLink.Button.Secondary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minHeight="@dimen/small_button_min_height"
                 android:paddingHorizontal="14dp"
                 android:text="@string/action_copy_markdown"
-                android:textSize="12sp"
-                app:cornerRadius="8dp" />
+                android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
