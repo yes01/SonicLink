@@ -6,16 +6,19 @@
         <item name="colorOnPrimary">@color/text_on_primary</item>
         <item name="colorSecondary">@color/brand_secondary</item>
         <item name="android:statusBarColor">#FF0F172A</item>
-        <item name="android:navigationBarColor">#FF1E293B</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
         <item name="android:windowBackground">#FF0F172A</item>
+        <!-- Simplify ripple effects globally for cleaner look -->
+        <item name="android:colorControlHighlight">#1AFFFFFF</item>
     </style>
 
     <style name="Theme.Sonicandroidapk.Transparent" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.6</item>
         <item name="android:windowNoTitle">true</item>
     </style>
 

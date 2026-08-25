@@ -34,7 +34,7 @@ class ChatRepository(private val context: Context) {
             listOf(
                 ChatMessage(
                     senderName = "SonicLink 助手",
-                    text = "这里用于保存本机协同备注。手机附件上传请使用上方扫码绑定与媒体页面。",
+                    text = "这里用于保存本机备注。内容仅保存在当前设备，不会同步到测试平台。",
                     isMine = false
                 )
             )

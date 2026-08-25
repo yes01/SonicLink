@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand Primary -->
-    <color name="brand_primary">#0E7FA8</color>
-    <color name="brand_primary_dark">#086985</color>
-    <color name="brand_primary_light">#DDF1F5</color>
-    <color name="brand_secondary">#176C6B</color>
-    <color name="brand_accent">#C4633F</color>
+    <color name="brand_primary">#0F766E</color> <!-- Teal 600 -->
+    <color name="brand_primary_dark">#0F766E</color>
+    <color name="brand_primary_light">#F0FDFA</color> <!-- Teal 50 -->
+    <color name="brand_secondary">#0369A1</color> <!-- Sky 700 -->
+    <color name="brand_accent">#BE123C</color> <!-- Rose 700 -->
 
-    <!-- Neutrals & Backgrounds -->
-    <color name="bg_page">#EDF2F2</color>
-    <color name="bg_card">#FBFDFD</color>
-    <color name="bg_card_secondary">#F3F7F7</color>
-    <color name="bg_overlay">#80000000</color>
-    <color name="divider_color">#D8E1E1</color>
-    <color name="border_light">#D8E1E1</color>
-    <color name="border_focus">#0E7FA8</color>
+    <!-- Neutrals & Backgrounds (Lighter and cleaner) -->
+    <color name="bg_page">#F8FAFC</color> <!-- Slate 50 -->
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_card_secondary">#F1F5F9</color> <!-- Slate 100 -->
+    <color name="bg_overlay">#660F172A</color> <!-- Slate 900 with alpha -->
+    <color name="divider_color">#E2E8F0</color> <!-- Slate 200 -->
+    <color name="border_light">#E2E8F0</color> <!-- Slate 200 -->
+    <color name="border_focus">#94A3B8</color> <!-- Slate 400 -->
 
-    <!-- Typography -->
-    <color name="text_primary">#102326</color>
-    <color name="text_secondary">#4F6266</color>
-    <color name="text_tertiary">#6D7E82</color>
-    <color name="text_on_primary">#F7FCFD</color>
+    <!-- Typography (Higher contrast) -->
+    <color name="text_primary">#0F172A</color> <!-- Slate 900 -->
+    <color name="text_secondary">#475569</color> <!-- Slate 600 -->
+    <color name="text_tertiary">#64748B</color> <!-- Slate 500 -->
+    <color name="text_on_primary">#FFFFFF</color>
 
     <!-- Semantic Status -->
-    <color name="status_success">#257A60</color>
-    <color name="status_success_bg">#E4F3EC</color>
-    <color name="status_warning">#A96813</color>
-    <color name="status_warning_bg">#FAEEDB</color>
-    <color name="status_error">#BE4B45</color>
-    <color name="status_error_bg">#F9E8E6</color>
-    <color name="status_info">#0E7FA8</color>
-    <color name="status_info_bg">#DDF1F5</color>
+    <color name="status_success">#15803D</color> <!-- Green 700 -->
+    <color name="status_success_bg">#F0FDF4</color> <!-- Green 50 -->
+    <color name="status_warning">#B45309</color> <!-- Amber 700 -->
+    <color name="status_warning_bg">#FFFBEB</color> <!-- Amber 50 -->
+    <color name="status_error">#B91C1C</color> <!-- Red 700 -->
+    <color name="status_error_bg">#FEF2F2</color> <!-- Red 50 -->
+    <color name="status_info">#1D4ED8</color> <!-- Blue 700 -->
+    <color name="status_info_bg">#EFF6FF</color> <!-- Blue 50 -->
 
     <!-- Compatibility Aliases -->
-    <color name="black">#FF05090A</color>
-    <color name="white">#FFF7FCFD</color>
-    <color name="auto_bg">#FFFBFDFD</color>
-    <color name="sonic_link_bg">#EDF2F2</color>
-    <color name="sonic_link_panel">#FBFDFD</color>
-    <color name="sonic_link_text">#102326</color>
-    <color name="sonic_link_muted">#4F6266</color>
-    <color name="sonic_link_border">#D8E1E1</color>
-    <color name="sonic_link_primary">#0E7FA8</color>
-    <color name="sonic_link_warning">#A96813</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="auto_bg">#FFFFFFFF</color>
+    <color name="sonic_link_bg">#F8FAFC</color>
+    <color name="sonic_link_panel">#FFFFFF</color>
+    <color name="sonic_link_text">#0F172A</color>
+    <color name="sonic_link_muted">#475569</color>
+    <color name="sonic_link_border">#E2E8F0</color>
+    <color name="sonic_link_primary">#0F766E</color>
+    <color name="sonic_link_warning">#B45309</color>
 </resources>

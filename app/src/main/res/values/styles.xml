@@ -3,18 +3,34 @@
     <style name="Widget.SonicLink.Button.Primary" parent="Widget.Material3.Button">
         <item name="android:minHeight">@dimen/button_min_height</item>
         <item name="cornerRadius">@dimen/component_corner_radius</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.03</item>
+        <item name="rippleColor">#33FFFFFF</item>
     </style>
 
     <style name="Widget.SonicLink.Button.Secondary" parent="Widget.Material3.Button.TonalButton">
         <item name="android:minHeight">@dimen/small_button_min_height</item>
         <item name="cornerRadius">@dimen/component_corner_radius</item>
-        <item name="android:textSize">13sp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="backgroundTint">@color/bg_card_secondary</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="rippleColor">#1A000000</item>
     </style>
 
     <style name="Widget.SonicLink.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
         <item name="android:minHeight">@dimen/small_button_min_height</item>
         <item name="cornerRadius">@dimen/component_corner_radius</item>
-        <item name="android:textSize">13sp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="strokeColor">@color/border_focus</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="rippleColor">#1A000000</item>
+    </style>
+
+    <!-- Custom active indicator for Bottom Navigation -->
+    <style name="Widget.Material3.BottomNavigationView.ActiveIndicator" parent="">
+        <item name="android:color">@color/brand_primary_light</item>
     </style>
 </resources>

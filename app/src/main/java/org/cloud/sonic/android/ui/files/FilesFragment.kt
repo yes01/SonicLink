@@ -125,21 +125,10 @@ class FilesFragment : Fragment() {
         binding.chipDocs.setOnClickListener {
             loadCategory("docs")
         }
-        binding.chipZip.setOnClickListener {
-            loadCategory("zip")
-        }
     }
 
     private fun renderStorageStats() {
-        val stats = fileRepo.getStorageStats()
-        binding.storageProgress.progress = stats.usedPercentage
-        val usedGb = stats.usedBytes / (1024.0 * 1024 * 1024)
-        val totalGb = stats.totalBytes / (1024.0 * 1024 * 1024)
-        binding.tvStorageText.text = getString(
-            R.string.storage_used_format,
-            String.format(Locale.getDefault(), "%.1f GB", usedGb),
-            String.format(Locale.getDefault(), "%.1f GB", totalGb)
-        )
+        // 由于布局精简去除了 storageProgress 和 tvStorageText，这里只需保持空实现或更新剩余的UI即可
     }
 
     private fun loadDirectory(dir: File) {

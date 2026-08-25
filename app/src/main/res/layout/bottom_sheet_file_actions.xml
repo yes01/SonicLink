@@ -5,9 +5,9 @@
     android:layout_height="wrap_content"
     android:background="@color/bg_card"
     android:orientation="vertical"
-    android:paddingHorizontal="16dp"
-    android:paddingTop="20dp"
-    android:paddingBottom="24dp">
+    android:paddingHorizontal="@dimen/page_padding_horizontal"
+    android:paddingTop="@dimen/spacing_24"
+    android:paddingBottom="@dimen/spacing_32">
 
     <TextView
         android:id="@+id/tvTitle"
@@ -16,25 +16,25 @@
         android:ellipsize="middle"
         android:maxLines="2"
         android:textColor="@color/text_primary"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/tvPath"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/spacing_4"
         android:ellipsize="middle"
         android:maxLines="2"
         android:textColor="@color/text_secondary"
-        android:textSize="12sp" />
+        android:textSize="14sp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnUpload"
         style="@style/Widget.SonicLink.Button.Primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="@dimen/spacing_24"
         android:text="@string/send_to_defect_assistant"
         app:icon="@drawable/ic_cloud_upload" />
 
@@ -43,7 +43,7 @@
         style="@style/Widget.SonicLink.Button.Secondary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/spacing_12"
         android:text="@string/action_open_system_app"
         app:icon="@drawable/ic_arrow_forward" />
 
@@ -52,7 +52,7 @@
         style="@style/Widget.SonicLink.Button.Outlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/spacing_12"
         android:text="@string/action_copy_file_path" />
 
 </LinearLayout>

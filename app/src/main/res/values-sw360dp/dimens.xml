@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="page_padding_horizontal">16dp</dimen>
-    <dimen name="page_padding_vertical">12dp</dimen>
+    <dimen name="page_padding_vertical">16dp</dimen>
     <dimen name="card_padding">16dp</dimen>
-    <dimen name="item_spacing">10dp</dimen>
+    <dimen name="item_spacing">12dp</dimen>
     <dimen name="media_action_bar_margin">10dp</dimen>
     <dimen name="media_action_bar_padding">12dp</dimen>
 </resources>

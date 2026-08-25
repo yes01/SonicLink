@@ -9,23 +9,38 @@
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomNav"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="match_parent" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
+    <!-- 悬浮式底部导航栏容器 -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bottomNavContainer"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_card"
-        app:elevation="2dp"
-        app:itemIconTint="@color/navigation_item_tint"
-        app:itemTextColor="@color/navigation_item_tint"
-        app:labelVisibilityMode="labeled"
+        android:layout_height="64dp"
+        android:layout_marginBottom="24dp"
+        android:layout_marginHorizontal="24dp"
+        app:cardBackgroundColor="@color/bg_card"
+        app:cardCornerRadius="32dp"
+        app:cardElevation="8dp"
+        app:strokeColor="#1A000000"
+        app:strokeWidth="0.5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintWidth_max="@dimen/navigation_max_width"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintWidth_max="400dp">
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            app:elevation="0dp"
+            app:itemIconTint="@color/navigation_item_tint"
+            app:itemTextColor="@color/navigation_item_tint"
+            app:labelVisibilityMode="unlabeled"
+            app:itemRippleColor="@android:color/transparent"
+            app:itemActiveIndicatorStyle="@style/Widget.Material3.BottomNavigationView.ActiveIndicator"
+            app:menu="@menu/bottom_nav_menu" />
+            
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

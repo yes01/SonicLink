@@ -1,223 +1,231 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_page"
-    android:orientation="vertical">
+    android:background="@color/bg_page">
 
-    <!-- Top Header -->
+    <!-- Top Content Container -->
     <LinearLayout
+        android:id="@+id/topContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="@dimen/page_padding_horizontal"
-        android:paddingTop="12dp">
+        android:paddingTop="@dimen/spacing_12"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/nav_defect"
             android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <!-- Platform Binding Card (PlainApp PCard Style) -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardBinding"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/page_padding_horizontal"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="8dp"
-        app:cardBackgroundColor="@color/bg_card"
-        app:cardCornerRadius="@dimen/card_corner_radius"
-        app:cardElevation="0dp"
-        app:strokeColor="@color/border_light"
-        app:strokeWidth="1dp">
-
-        <LinearLayout
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.02" />
+            
+        <!-- Platform Binding Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardBinding"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginTop="@dimen/spacing_12"
+            android:layout_marginBottom="@dimen/spacing_12"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/border_light"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/bg_badge_pill"
-                    android:padding="8dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_nav_defect"
-                    app:tint="@color/brand_primary" />
+                android:orientation="vertical"
+                android:padding="20dp">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="@drawable/bg_badge_pill"
+                        android:backgroundTint="@color/bg_card_secondary"
+                        android:padding="@dimen/spacing_8"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_nav_defect"
+                        app:tint="@color/brand_primary" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/spacing_12"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/platform_binding_title"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvBindingStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/platform_unbound_status"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvServerUrl"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_8"
+                    android:lineSpacingExtra="2dp"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="12sp" />
+
+                <!-- Responsive Action Buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_16"
                     android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnScanQr"
+                        style="@style/Widget.SonicLink.Button.Primary"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/platform_binding_title"
-                        android:textColor="@color/text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
+                        android:backgroundTint="@color/brand_primary"
+                        android:text="@string/scan_qr_to_bind"
+                        android:textColor="@color/text_on_primary"
+                        android:textStyle="bold"
+                        app:icon="@drawable/ic_qr_code"
+                        app:iconTint="@color/text_on_primary" />
 
-                    <TextView
-                        android:id="@+id/tvBindingStatus"
-                        android:layout_width="wrap_content"
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnManualConfig"
+                        style="@style/Widget.SonicLink.Button.Outlined"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/platform_unbound_status"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
+                        android:layout_marginTop="@dimen/spacing_8"
+                        android:text="@string/manual_bind_config"
+                        app:icon="@drawable/ic_edit" />
                 </LinearLayout>
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:id="@+id/tvServerUrl"
+        <!-- Tabs -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/defectTabs"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_rounded_card"
+            app:tabIndicator="@drawable/bg_badge_pill"
+            app:tabIndicatorColor="@color/brand_primary_light"
+            app:tabIndicatorHeight="36dp"
+            app:tabIndicatorGravity="center"
+            app:tabRippleColor="@android:color/transparent"
+            app:tabSelectedTextColor="@color/brand_primary"
+            app:tabTextColor="@color/text_secondary">
+
+            <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:lineSpacingExtra="2dp"
-                android:textColor="@color/text_tertiary"
-                android:textSize="11sp" />
+                android:text="@string/recent_uploads_title" />
 
-            <!-- Responsive Action Buttons (No fixed height/tight width) -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="vertical">
+                android:text="@string/lan_chat_title" />
+        </com.google.android.material.tabs.TabLayout>
+    </LinearLayout>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnScanQr"
-                    style="@style/Widget.SonicLink.Button.Primary"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/brand_primary"
-                    android:paddingHorizontal="10dp"
-                    android:text="@string/scan_qr_to_bind"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    app:icon="@drawable/ic_qr_code"
-                    app:iconSize="16dp"
-                    app:iconTint="@color/white" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnManualConfig"
-                    style="@style/Widget.SonicLink.Button.Outlined"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:paddingHorizontal="10dp"
-                    android:text="@string/manual_bind_config"
-                    android:textSize="12sp"
-                    app:icon="@drawable/ic_edit"
-                    app:iconSize="16dp" />
-            </LinearLayout>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Tabs: 直传历史与附件池 vs 局域网快传/聊天 -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/defectTabs"
-        android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_marginHorizontal="@dimen/page_padding_horizontal"
-        android:background="@drawable/bg_rounded_card"
-        app:tabIndicatorColor="@color/brand_primary"
-        app:tabIndicatorHeight="3dp"
-        app:tabSelectedTextColor="@color/brand_primary"
-        app:tabTextColor="@color/text_secondary">
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/recent_uploads_title" />
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/lan_chat_title" />
-    </com.google.android.material.tabs.TabLayout>
-
-    <!-- Section 1: Upload History List -->
+    <!-- Scrollable Areas -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvHistory"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_weight="1"
+        android:layout_marginTop="@dimen/spacing_8"
         android:clipToPadding="false"
         android:paddingHorizontal="@dimen/page_padding_horizontal"
-        android:paddingBottom="8dp" />
+        android:paddingBottom="120dp"
+        app:layout_constraintTop_toBottomOf="@id/topContent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Section 2: LAN Chat Section (Container) -->
-    <LinearLayout
-        android:id="@+id/layoutChatContainer"
+    <!-- LAN Chat Section (Replaces layoutChatContainer logic) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChat"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:visibility="gone">
+        android:layout_marginTop="@dimen/spacing_8"
+        android:clipToPadding="false"
+        android:paddingHorizontal="@dimen/page_padding_horizontal"
+        android:paddingBottom="160dp" 
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/topContent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvChat"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:paddingHorizontal="@dimen/page_padding_horizontal"
-            android:paddingBottom="8dp" />
+    <!-- Floating Chat Input Pill (Shown only when in Chat mode) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/layoutChatInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/page_padding_horizontal"
+        android:layout_marginBottom="96dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/bg_card"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="16dp"
+        app:strokeWidth="0dp"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Chat Input Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/bg_card"
-            android:elevation="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:paddingHorizontal="@dimen/spacing_8"
+            android:paddingVertical="4dp">
 
             <EditText
                 android:id="@+id/etChatInput"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/bg_rounded_card"
+                android:background="@android:color/transparent"
                 android:hint="@string/send_message_hint"
                 android:importantForAutofill="no"
                 android:inputType="textCapSentences|textMultiLine"
                 android:minHeight="48dp"
-                android:paddingHorizontal="14dp"
+                android:maxLines="4"
+                android:paddingHorizontal="@dimen/spacing_16"
                 android:textColor="@color/text_primary"
-                android:textSize="13sp" />
+                android:textColorHint="@color/text_tertiary"
+                android:textSize="14sp" />
 
             <ImageView
                 android:id="@+id/btnSendChat"
-                android:layout_width="@dimen/icon_touch_target"
-                android:layout_height="@dimen/icon_touch_target"
-                android:layout_marginStart="8dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="@dimen/spacing_4"
                 android:background="@drawable/bg_badge_pill"
+                android:backgroundTint="@color/brand_primary_light"
                 android:contentDescription="@string/send_message_description"
                 android:padding="10dp"
                 android:src="@drawable/ic_send"
                 app:tint="@color/brand_primary" />
         </LinearLayout>
-    </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

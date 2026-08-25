@@ -120,6 +120,15 @@ class QrScanActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        binding.barcodeScannerView.pause()
+        if (scannerConfigured) {
+            binding.barcodeScannerView.pauseAndWait()
+        }
+    }
+
+    override fun onDestroy() {
+        if (scannerConfigured) {
+            binding.barcodeScannerView.destroyDrawingCache()
+        }
+        super.onDestroy()
     }
 }

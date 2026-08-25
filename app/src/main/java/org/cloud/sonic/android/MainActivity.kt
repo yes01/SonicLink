@@ -2,12 +2,16 @@ package org.cloud.sonic.android
 
 import android.content.res.Configuration
 import android.content.Intent
+import android.graphics.RenderEffect
+import android.graphics.Shader
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import androidx.core.content.ContextCompat
 import com.gyf.immersionbar.ktx.immersionBar
 import org.cloud.sonic.android.agent.SonicLinkAgentService
 import org.cloud.sonic.android.agent.SonicLinkConfigStore
@@ -37,12 +41,10 @@ class MainActivity : AppCompatActivity() {
 
         val isDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         immersionBar {
-            statusBarColor(R.color.bg_page)
-            navigationBarColor(R.color.bg_card)
+            transparentStatusBar()
+            transparentNavigationBar()
             statusBarDarkFont(!isDark)
             navigationBarDarkIcon(!isDark)
-            fitsSystemWindows(true)
-            autoDarkModeEnable(true)
         }
 
         setupViewPagerAndNavigation()
@@ -50,6 +52,25 @@ class MainActivity : AppCompatActivity() {
 
         if (configStore.getConfig().autoConnect && !SonicLinkStatus.serviceRunning) {
             SonicLinkAgentService.start(this)
+        }
+
+        // Apply iOS-like Glassmorphism (Blur) for Android 12+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Remove RenderEffect since it blurs the whole view tree (including icons)
+            binding.bottomNavContainer.setRenderEffect(null)
+            
+            // To achieve true iOS style glassmorphism on the *background* of the view only
+            // without blurring the icons, we need to use a custom RenderNode or third-party blur library.
+            // window.setBackgroundBlurRadius blurs the entire activity background behind the window.
+            // For now, we rely on a beautiful semi-transparent acrylic color to simulate the glass,
+            // avoiding the bug where the navigation icons become invisible.
+            val isDark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val bgColor = if (isDark) 0xD90F172A.toInt() else 0xD9FFFFFF.toInt() // 85% opacity
+            binding.bottomNavContainer.setCardBackgroundColor(bgColor)
+            binding.bottomNav.setBackgroundColor(0x00000000.toInt())
+        } else {
+            // Fallback
+            binding.bottomNavContainer.setCardBackgroundColor(ContextCompat.getColor(this, R.color.bg_card))
         }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

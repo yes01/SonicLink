@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand Primary in Dark Mode -->
-    <color name="brand_primary">#45B8D8</color>
-    <color name="brand_primary_dark">#208DAF</color>
-    <color name="brand_primary_light">#173D47</color>
-    <color name="brand_secondary">#4FC0B3</color>
-    <color name="brand_accent">#E08A62</color>
+    <color name="brand_primary">#2DD4BF</color> <!-- Teal 400 -->
+    <color name="brand_primary_dark">#14B8A6</color> <!-- Teal 500 -->
+    <color name="brand_primary_light">#042F2E</color> <!-- Teal 900 -->
+    <color name="brand_secondary">#38BDF8</color> <!-- Sky 400 -->
+    <color name="brand_accent">#FB7185</color> <!-- Rose 400 -->
 
     <!-- Dark Mode Surfaces & Backgrounds -->
-    <color name="bg_page">#0B1316</color>
-    <color name="bg_card">#141E22</color>
-    <color name="bg_card_secondary">#1C292E</color>
-    <color name="bg_overlay">#B3000000</color>
-    <color name="divider_color">#2A3A40</color>
-    <color name="border_light">#2A3A40</color>
-    <color name="border_focus">#45B8D8</color>
+    <color name="bg_page">#0F172A</color> <!-- Slate 900 -->
+    <color name="bg_card">#1E293B</color> <!-- Slate 800 -->
+    <color name="bg_card_secondary">#334155</color> <!-- Slate 700 -->
+    <color name="bg_overlay">#B3000000</color> <!-- Slate 900 with alpha -->
+    <color name="divider_color">#334155</color> <!-- Slate 700 -->
+    <color name="border_light">#334155</color> <!-- Slate 700 -->
+    <color name="border_focus">#94A3B8</color> <!-- Slate 400 -->
 
     <!-- Dark Mode Typography -->
-    <color name="text_primary">#E8F0F1</color>
-    <color name="text_secondary">#A6B5B8</color>
-    <color name="text_tertiary">#87989C</color>
-    <color name="text_on_primary">#071417</color>
+    <color name="text_primary">#F8FAFC</color> <!-- Slate 50 -->
+    <color name="text_secondary">#94A3B8</color> <!-- Slate 400 -->
+    <color name="text_tertiary">#64748B</color> <!-- Slate 500 -->
+    <color name="text_on_primary">#022C22</color> <!-- Teal 950 -->
 
     <!-- Semantic Status in Dark Mode -->
-    <color name="status_success">#34D399</color>
-    <color name="status_success_bg">#064E3B</color>
-    <color name="status_warning">#FBBF24</color>
-    <color name="status_warning_bg">#78350F</color>
-    <color name="status_error">#F87171</color>
-    <color name="status_error_bg">#7F1D1D</color>
-    <color name="status_info">#60A5FA</color>
-    <color name="status_info_bg">#1E3A8A</color>
+    <color name="status_success">#4ADE80</color> <!-- Green 400 -->
+    <color name="status_success_bg">#14532D</color> <!-- Green 900 -->
+    <color name="status_warning">#FBBF24</color> <!-- Amber 400 -->
+    <color name="status_warning_bg">#78350F</color> <!-- Amber 900 -->
+    <color name="status_error">#F87171</color> <!-- Red 400 -->
+    <color name="status_error_bg">#7F1D1D</color> <!-- Red 900 -->
+    <color name="status_info">#60A5FA</color> <!-- Blue 400 -->
+    <color name="status_info_bg">#1E3A8A</color> <!-- Blue 900 -->
 
     <!-- Compatibility Aliases -->
-    <color name="black">#FF05090A</color>
-    <color name="white">#FFF7FCFD</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
     <color name="auto_bg">#0F172A</color>
-    <color name="sonic_link_bg">#0B1316</color>
-    <color name="sonic_link_panel">#141E22</color>
-    <color name="sonic_link_text">#E8F0F1</color>
-    <color name="sonic_link_muted">#A6B5B8</color>
-    <color name="sonic_link_border">#2A3A40</color>
-    <color name="sonic_link_primary">#45B8D8</color>
+    <color name="sonic_link_bg">#0F172A</color>
+    <color name="sonic_link_panel">#1E293B</color>
+    <color name="sonic_link_text">#F8FAFC</color>
+    <color name="sonic_link_muted">#94A3B8</color>
+    <color name="sonic_link_border">#334155</color>
+    <color name="sonic_link_primary">#2DD4BF</color>
     <color name="sonic_link_warning">#FBBF24</color>
 </resources>

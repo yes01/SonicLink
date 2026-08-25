@@ -12,41 +12,40 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="@dimen/page_padding_horizontal"
-        android:paddingTop="12dp"
-        android:paddingBottom="6dp">
+        android:paddingTop="@dimen/spacing_16"
+        android:paddingBottom="@dimen/spacing_8">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/nav_files"
             android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.02" />
 
-        <!-- All Files Access Permission Notice Banner (For Android 11+) -->
+        <!-- All Files Access Permission Notice Banner -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardPermissionNotice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="@dimen/spacing_12"
             android:visibility="gone"
             app:cardBackgroundColor="@color/status_warning_bg"
-            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
-            app:strokeColor="@color/status_warning"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:padding="12dp">
+                android:padding="16dp">
 
                 <ImageView
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:padding="4dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_security"
                     app:tint="@color/status_warning" />
@@ -54,7 +53,7 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="10dp"
+                    android:layout_marginHorizontal="@dimen/spacing_12"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -63,16 +62,8 @@
                         android:layout_height="wrap_content"
                         android:text="@string/storage_permission_title"
                         android:textColor="@color/text_primary"
-                        android:textSize="13sp"
+                        android:textSize="14sp"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/storage_permission_summary"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -80,72 +71,22 @@
                     style="@style/Widget.SonicLink.Button.Secondary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="12dp"
-                    android:text="@string/storage_permission_action"
-                    android:textSize="12sp" />
+                    android:text="@string/storage_permission_action" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Storage Card (PlainApp PCard style) -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:cardBackgroundColor="@color/bg_card"
-            app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/border_light"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="14dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/storage_overview"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvStorageText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <ProgressBar
-                    android:id="@+id/storageProgress"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="8dp"
-                    android:layout_marginTop="10dp"
-                    android:progressDrawable="@drawable/bg_badge_pill" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Category Shortcuts -->
+        <!-- Category Shortcuts (Simplified) -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/spacing_12"
             android:scrollbars="none">
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chipGroupCategories"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="@dimen/spacing_8"
                 app:singleSelection="true">
 
                 <com.google.android.material.chip.Chip
@@ -176,33 +117,24 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/category_docs" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipZip"
-                    style="@style/Widget.Material3.Chip.Filter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/category_zip" />
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
-        <!-- Breadcrumb Path Bar -->
+        <!-- Breadcrumb Path Bar (Sleeker design) -->
         <TextView
             android:id="@+id/tvPath"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/bg_rounded_card"
+            android:layout_marginTop="@dimen/spacing_8"
+            android:background="@android:color/transparent"
             android:ellipsize="start"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp"
-            android:minHeight="44dp"
+            android:paddingVertical="@dimen/spacing_4"
+            android:minHeight="32dp"
             android:gravity="center_vertical"
-            android:contentDescription="@string/path_back_description"
             android:singleLine="true"
             android:text="@string/default_storage_path"
-            android:textColor="@color/brand_primary"
-            android:textSize="12sp" />
+            android:textColor="@color/text_tertiary"
+            android:textSize="13sp" />
     </LinearLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -221,7 +153,7 @@
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
                 android:paddingHorizontal="@dimen/page_padding_horizontal"
-                android:paddingBottom="8dp" />
+                android:paddingBottom="120dp" /> <!-- 悬浮导航栏安全高度 -->
 
             <TextView
                 android:id="@+id/tvEmpty"
@@ -230,7 +162,7 @@
                 android:layout_gravity="center"
                 android:text="@string/no_files_found"
                 android:textColor="@color/text_tertiary"
-                android:textSize="14sp"
+                android:textSize="15sp"
                 android:visibility="gone" />
         </FrameLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

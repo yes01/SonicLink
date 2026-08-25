@@ -92,15 +92,6 @@ class VideosFragment : Fragment() {
             permissionLauncher.launch(perms)
         }
 
-        binding.videoTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                onlyScreenRecords = tab?.position == 1
-                loadVideos()
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
-
         binding.btnUploadPlatform.setOnClickListener {
             uploadSelectedVideos()
         }

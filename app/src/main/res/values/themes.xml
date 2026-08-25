@@ -6,10 +6,12 @@
         <item name="colorOnPrimary">@color/text_on_primary</item>
         <item name="colorSecondary">@color/brand_secondary</item>
         <item name="android:statusBarColor">@color/bg_page</item>
-        <item name="android:navigationBarColor">@color/bg_card</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
         <item name="android:windowBackground">@color/bg_page</item>
+        <!-- Simplify ripple effects globally for cleaner look -->
+        <item name="android:colorControlHighlight">#1A000000</item>
     </style>
 
     <!-- Transparent Activity Theme (for permission dialogues) -->
@@ -17,6 +19,7 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.4</item>
         <item name="android:windowNoTitle">true</item>
     </style>
 

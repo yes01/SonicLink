@@ -4,6 +4,40 @@ plugins {
   id 'kotlin-kapt'
 }
 
+def versionPropsFile = file('version.properties')
+def versionProps = new Properties()
+
+if (versionPropsFile.canRead()) {
+    versionProps.load(new FileInputStream(versionPropsFile))
+} else {
+    versionProps.setProperty('VERSION_CODE', '10')
+    versionProps.setProperty('VERSION_NAME', '2.1.0-soniclink')
+}
+
+def codeStr = versionProps.getProperty('VERSION_CODE')
+if (codeStr == null) {
+    codeStr = '10'
+}
+def code = codeStr.toInteger()
+
+def nameStr = versionProps.getProperty('VERSION_NAME')
+if (nameStr == null) {
+    nameStr = '2.1.0-soniclink'
+}
+def name = nameStr.toString()
+
+// 任务：在 assembleDebug 或 assembleRelease 任务执行时自增版本号
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.hasTask(":$project.name:assembleDebug") || taskGraph.hasTask(":$project.name:assembleRelease")) {
+        code++
+        // 如果需要连带改 versionName 也可以在这修改，例如： name = "2.1.0-soniclink-build${code}"
+        name = "2.1.0-build" + code.toString()
+        versionProps['VERSION_CODE'] = code.toString()
+        versionProps['VERSION_NAME'] = name
+        versionProps.store(versionPropsFile.newWriter(), null)
+    }
+}
+
 android {
   compileSdk 34
   namespace "org.cloud.sonic.android"
@@ -12,8 +46,8 @@ android {
     applicationId "org.cloud.sonic.android"
     minSdk 24
     targetSdk 34
-    versionCode 10
-    versionName "2.1.0-soniclink"
+    versionCode code
+    versionName name
 
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
   }

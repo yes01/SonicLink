@@ -97,11 +97,13 @@ class DefectAssistantFragment : Fragment() {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 if (tab?.position == 0) {
                     binding.rvHistory.visibility = View.VISIBLE
-                    binding.layoutChatContainer.visibility = View.GONE
+                    binding.rvChat.visibility = View.GONE
+                    binding.layoutChatInput.visibility = View.GONE
                     loadHistory()
                 } else {
                     binding.rvHistory.visibility = View.GONE
-                    binding.layoutChatContainer.visibility = View.VISIBLE
+                    binding.rvChat.visibility = View.VISIBLE
+                    binding.layoutChatInput.visibility = View.VISIBLE
                 }
             }
             override fun onTabUnselected(tab: TabLayout.Tab?) {}

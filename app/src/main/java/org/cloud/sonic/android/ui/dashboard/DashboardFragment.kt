@@ -186,7 +186,7 @@ class DashboardFragment : Fragment() {
 
     private fun loadConfig() {
         val config = configStore.getConfig()
-        binding.version.text = getString(R.string.version_label, AppUtils.getAppVersionName())
+        binding.version.text = "${getString(R.string.version_label, AppUtils.getAppVersionName())} (Build ${AppUtils.getAppVersionCode()})"
         binding.connectionSettingsSummary.text = if (config.isReady) {
             "${config.webSocketUrl}\n设备：${config.deviceName.ifBlank { "未命名设备" }}"
         } else {
@@ -208,39 +208,32 @@ class DashboardFragment : Fragment() {
             binding.agentStatusBadge.text = newBadge
         }
 
-        val newConfigStatus = statusLine(
-            getString(R.string.status_platform_address),
-            hasConfig,
-            if (hasConfig) config.webSocketUrl else getString(R.string.status_missing_ws)
-        )
-        if (binding.configStatus.text != newConfigStatus) {
-            binding.configStatus.text = newConfigStatus
+        val newAccessibilityStatus = if (accessibilityEnabled) {
+            "${getString(R.string.status_ok)} · ${getString(R.string.status_accessibility_enabled)}"
+        } else {
+            "${getString(R.string.status_needs_attention)} · ${getString(R.string.status_accessibility_required)}"
         }
-
-        val newAccessibilityStatus = statusLine(
-            getString(R.string.status_accessibility),
-            accessibilityEnabled,
-            if (accessibilityEnabled) getString(R.string.status_accessibility_enabled) else getString(R.string.status_accessibility_required)
-        )
         if (binding.accessibilityStatus.text != newAccessibilityStatus) {
             binding.accessibilityStatus.text = newAccessibilityStatus
         }
 
-        val newCaptureStatus = statusLine(
-            getString(R.string.status_screen_capture),
-            captureGranted,
-            if (captureGranted) getString(R.string.status_capture_granted) else getString(R.string.status_capture_not_granted)
-        )
+        val newCaptureStatus = if (captureGranted) {
+            "${getString(R.string.status_ok)} · ${getString(R.string.status_capture_granted)}"
+        } else {
+            "${getString(R.string.status_needs_attention)} · ${getString(R.string.status_capture_not_granted)}"
+        }
         if (binding.screenCaptureStatus.text != newCaptureStatus) {
             binding.screenCaptureStatus.text = newCaptureStatus
         }
 
-        val newAgentStatus = "${getString(R.string.status_agent)}：${localizedConnectionState()}${agentDetailText()}"
-        if (binding.agentStatus.text != newAgentStatus) {
-            binding.agentStatus.text = newAgentStatus
+        val newAgentStatus = "${localizedConnectionState()}${agentDetailText()}"
+        if (binding.agentStatusDetail.text != newAgentStatus) {
+            binding.agentStatusDetail.text = newAgentStatus
         }
 
-        val newDeviceStatus = "${getString(R.string.status_device)}：${getString(R.string.device_status_format, configStore.getOrCreateDeviceId(), display.width, display.height, display.rotation)}"
+        // We completely remove configStatus because it is redundant (ws url is already shown in the card above).
+        // Update device status formatting without label prefix to keep it clean.
+        val newDeviceStatus = getString(R.string.device_status_format, configStore.getOrCreateDeviceId(), display.width, display.height, display.rotation)
         if (binding.deviceStatus.text != newDeviceStatus) {
             binding.deviceStatus.text = newDeviceStatus
         }

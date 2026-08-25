@@ -92,15 +92,6 @@ class ImagesFragment : Fragment() {
             permissionLauncher.launch(perms)
         }
 
-        binding.imageTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                onlyScreenshots = tab?.position == 1
-                loadImages()
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
-
         binding.btnUploadPlatform.setOnClickListener {
             uploadSelectedImages()
         }
