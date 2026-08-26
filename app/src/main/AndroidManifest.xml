@@ -137,6 +137,12 @@
             android:theme="@style/Theme.Sonicandroidapk.Fullscreen" />
 
         <activity
+            android:name=".ui.logs.AppLogUploadActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Sonicandroidapk"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".ui.qr.QrScanActivity"
             android:exported="false"
             android:screenOrientation="portrait"
@@ -178,6 +184,12 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync|mediaProjection" />
+
+        <service
+            android:name=".media.MobileMediaBridgeService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <service
             android:name=".accessibility.SonicLinkAccessibilityService"

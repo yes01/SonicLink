@@ -19,8 +19,10 @@ import org.cloud.sonic.android.MainActivity
 import org.cloud.sonic.android.R
 import org.cloud.sonic.android.databinding.FragmentImagesBinding
 import org.cloud.sonic.android.model.MediaItem
+import org.cloud.sonic.android.model.PlatformConfig
 import org.cloud.sonic.android.repository.MediaRepository
 import org.cloud.sonic.android.repository.PlatformSyncRepository
+import org.cloud.sonic.android.ui.common.PlatformAccountPicker
 import java.io.File
 
 class ImagesFragment : Fragment() {
@@ -136,16 +138,23 @@ class ImagesFragment : Fragment() {
         val selected = adapter.getSelectedItems()
         if (selected.isEmpty()) return
 
-        val config = platformRepo.getConfig()
-        if (!config.isBound) {
-            Snackbar.make(binding.root, "请先绑定测试平台账号", Snackbar.LENGTH_LONG)
-                .setAction(R.string.action_go_to_binding) {
-                    (activity as? MainActivity)?.openDefectTab()
-                }
-                .show()
-            return
-        }
+        PlatformAccountPicker.show(
+            context = requireContext(),
+            repository = platformRepo,
+            onMissing = {
+                Snackbar.make(binding.root, "请先绑定测试平台账号", Snackbar.LENGTH_LONG)
+                    .setAction(R.string.action_go_to_binding) {
+                        (activity as? MainActivity)?.openDefectTab()
+                    }
+                    .show()
+            }
+        ) { target -> uploadSelectedImages(selected, target) }
+    }
 
+    private fun uploadSelectedImages(
+        selected: List<MediaItem>,
+        target: PlatformConfig
+    ) {
         binding.btnUploadPlatform.isEnabled = false
         binding.btnUploadPlatform.setText(R.string.sending)
 
@@ -155,9 +164,9 @@ class ImagesFragment : Fragment() {
 
             for (item in selected) {
                 val res = if (item.path.isNotBlank() && File(item.path).exists()) {
-                    platformRepo.uploadAttachment(File(item.path))
+                    platformRepo.uploadAttachment(File(item.path), targetConfig = target)
                 } else {
-                    platformRepo.uploadAttachment(item.uri, item.name)
+                    platformRepo.uploadAttachment(item.uri, item.name, targetConfig = target)
                 }
                 if (res.isSuccess) successCount++ else failCount++
             }
@@ -167,7 +176,7 @@ class ImagesFragment : Fragment() {
             adapter.clearSelection()
 
             val message = if (failCount == 0) {
-                "已发送 $successCount 个附件到缺陷助手"
+                "已发送 $successCount 个附件到 ${target.username.ifBlank { "用户 ${target.userId}" }}"
             } else {
                 "发送完成：成功 $successCount 个，失败 $failCount 个"
             }

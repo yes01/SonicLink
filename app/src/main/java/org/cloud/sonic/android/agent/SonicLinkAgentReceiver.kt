@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
+import org.cloud.sonic.android.media.MobileMediaBridgeService
 
 class SonicLinkAgentReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
@@ -18,5 +19,6 @@ class SonicLinkAgentReceiver : BroadcastReceiver() {
         if (config.autoConnect && config.isReady) {
             SonicLinkAgentService.start(context)
         }
+        MobileMediaBridgeService.sync(context)
     }
 }

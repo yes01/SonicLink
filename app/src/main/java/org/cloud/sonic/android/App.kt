@@ -19,6 +19,7 @@ package org.cloud.sonic.android
 
 import android.app.Application
 import com.blankj.utilcode.util.Utils
+import org.cloud.sonic.android.media.MobileMediaBridgeService
 
 //@HiltAndroidApp
 class App:Application() {
@@ -26,5 +27,6 @@ class App:Application() {
         super.onCreate()
         //初始化工具类
         Utils.init(this)
+        MobileMediaBridgeService.sync(this)
     }
 }

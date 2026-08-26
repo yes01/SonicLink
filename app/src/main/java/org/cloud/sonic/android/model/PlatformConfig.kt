@@ -12,6 +12,9 @@ data class PlatformConfig(
     val autoSyncScreenshots: Boolean = false,
     val boundAt: Long = 0L
 ) {
+    val bindingKey: String
+        get() = "${serverUrl.trim().trimEnd('/')}|$userId"
+
     val isBound: Boolean
         get() = serverUrl.isNotBlank() && deviceId.isNotBlank() && sessionKey.isNotBlank() && deviceCredentialPresent
 }

@@ -25,6 +25,8 @@ import org.cloud.sonic.android.databinding.FragmentFilesBinding
 import org.cloud.sonic.android.model.FileItem
 import org.cloud.sonic.android.repository.FileRepository
 import org.cloud.sonic.android.repository.PlatformSyncRepository
+import org.cloud.sonic.android.model.PlatformConfig
+import org.cloud.sonic.android.ui.common.PlatformAccountPicker
 import java.io.File
 import java.util.Locale
 
@@ -197,32 +199,38 @@ class FilesFragment : Fragment() {
     }
 
     private fun uploadSingleFile(file: File) {
-        val config = platformRepo.getConfig()
-        if (!config.isBound) {
-            Snackbar.make(binding.root, "请先绑定测试平台账号", Snackbar.LENGTH_LONG)
-                .setAction(R.string.action_go_to_binding) {
-                    (activity as? MainActivity)?.openDefectTab()
-                }
-                .show()
-            return
-        }
+        PlatformAccountPicker.show(
+            context = requireContext(),
+            repository = platformRepo,
+            onMissing = {
+                Snackbar.make(binding.root, "请先绑定测试平台账号", Snackbar.LENGTH_LONG)
+                    .setAction(R.string.action_go_to_binding) {
+                        (activity as? MainActivity)?.openDefectTab()
+                    }
+                    .show()
+            }
+        ) { target -> uploadSingleFile(file, target) }
+    }
+
+    private fun uploadSingleFile(file: File, target: PlatformConfig) {
         if (!uploadsInProgress.add(file.absolutePath)) return
 
         val progress = Snackbar.make(binding.root, "正在发送 ${file.name}", Snackbar.LENGTH_INDEFINITE)
         progress.show()
         viewLifecycleOwner.lifecycleScope.launch {
-            val res = platformRepo.uploadAttachment(file)
+            val res = platformRepo.uploadAttachment(file, targetConfig = target)
             uploadsInProgress.remove(file.absolutePath)
             progress.dismiss()
             res.onSuccess {
-                Snackbar.make(binding.root, "已发送到缺陷助手", Snackbar.LENGTH_LONG)
+                val account = target.username.ifBlank { "用户 ${target.userId}" }
+                Snackbar.make(binding.root, "已发送到 $account", Snackbar.LENGTH_LONG)
                     .setAction(R.string.nav_defect) {
                         (activity as? MainActivity)?.openDefectTab()
                     }
                     .show()
             }.onFailure { err ->
                 Snackbar.make(binding.root, "发送失败：${err.message}", Snackbar.LENGTH_LONG)
-                    .setAction(R.string.action_retry) { uploadSingleFile(file) }
+                    .setAction(R.string.action_retry) { uploadSingleFile(file, target) }
                     .show()
             }
         }

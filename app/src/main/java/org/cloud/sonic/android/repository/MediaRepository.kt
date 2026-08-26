@@ -37,7 +37,12 @@ class MediaRepository(private val context: Context) {
         }
     }
 
-    suspend fun getImages(onlyScreenshots: Boolean = false): List<MediaItem> = withContext(Dispatchers.IO) {
+    suspend fun getImages(
+        onlyScreenshots: Boolean = false,
+        offset: Int = 0,
+        limit: Int = Int.MAX_VALUE,
+        query: String = ""
+    ): List<MediaItem> = withContext(Dispatchers.IO) {
         val items = mutableListOf<MediaItem>()
         if (!hasImagePermission()) {
             return@withContext items
@@ -88,7 +93,8 @@ class MediaRepository(private val context: Context) {
                 val bucketColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) it.getColumnIndex(MediaStore.Images.Media.BUCKET_DISPLAY_NAME) else -1
                 val relativeColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) it.getColumnIndex(MediaStore.Images.Media.RELATIVE_PATH) else -1
 
-                while (it.moveToNext()) {
+                var matchedCount = 0
+                while (it.moveToNext() && items.size < limit.coerceAtLeast(1)) {
                     val id = it.getLong(idColumn)
                     val name = it.getString(nameColumn) ?: "image_$id"
                     val dateModified = it.getLong(dateColumn) * 1000L
@@ -102,7 +108,9 @@ class MediaRepository(private val context: Context) {
 
                     val isScreenshot = isScreenshotMedia(name, path, bucketName, relativePath)
 
-                    if (!onlyScreenshots || isScreenshot) {
+                    val matchesQuery = query.isBlank() || name.contains(query, ignoreCase = true)
+                    if ((!onlyScreenshots || isScreenshot) && matchesQuery) {
+                        if (matchedCount++ < offset.coerceAtLeast(0)) continue
                         val contentUri = ContentUris.withAppendedId(collection, id)
                         items.add(
                             MediaItem(
@@ -129,7 +137,12 @@ class MediaRepository(private val context: Context) {
         items
     }
 
-    suspend fun getVideos(onlyScreenRecordings: Boolean = false): List<MediaItem> = withContext(Dispatchers.IO) {
+    suspend fun getVideos(
+        onlyScreenRecordings: Boolean = false,
+        offset: Int = 0,
+        limit: Int = Int.MAX_VALUE,
+        query: String = ""
+    ): List<MediaItem> = withContext(Dispatchers.IO) {
         val items = mutableListOf<MediaItem>()
         if (!hasVideoPermission()) {
             return@withContext items
@@ -182,7 +195,8 @@ class MediaRepository(private val context: Context) {
                 val bucketColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) it.getColumnIndex(MediaStore.Video.Media.BUCKET_DISPLAY_NAME) else -1
                 val relativeColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) it.getColumnIndex(MediaStore.Video.Media.RELATIVE_PATH) else -1
 
-                while (it.moveToNext()) {
+                var matchedCount = 0
+                while (it.moveToNext() && items.size < limit.coerceAtLeast(1)) {
                     val id = it.getLong(idColumn)
                     val name = it.getString(nameColumn) ?: "video_$id"
                     val dateModified = it.getLong(dateColumn) * 1000L
@@ -197,7 +211,9 @@ class MediaRepository(private val context: Context) {
 
                     val isScreenRecord = isScreenRecordingMedia(name, path, bucketName, relativePath)
 
-                    if (!onlyScreenRecordings || isScreenRecord) {
+                    val matchesQuery = query.isBlank() || name.contains(query, ignoreCase = true)
+                    if ((!onlyScreenRecordings || isScreenRecord) && matchesQuery) {
+                        if (matchedCount++ < offset.coerceAtLeast(0)) continue
                         val contentUri = ContentUris.withAppendedId(collection, id)
                         items.add(
                             MediaItem(

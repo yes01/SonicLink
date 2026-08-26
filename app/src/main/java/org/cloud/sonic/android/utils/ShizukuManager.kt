@@ -6,9 +6,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 
 object ShizukuManager {
+
+    data class PrivilegedFileStat(
+        val size: Long = -1L,
+        val modifiedAt: Long = 0L
+    )
 
     const val REQUEST_CODE_SHIZUKU = 1001
 
@@ -96,6 +102,63 @@ object ShizukuManager {
         return@withContext executeShellCommand(command)
     }
 
+    suspend fun listFilesRecursively(rootPath: String): Result<List<String>> = withContext(Dispatchers.IO) {
+        runCatching {
+            require(hasPermission()) { "Shizuku 未授权" }
+            require(isTrustedLogRoot(rootPath)) { "日志根目录不受信任" }
+            val process = Shizuku.newProcess(arrayOf("find", rootPath, "-type", "f"), null, null)
+            val output = process.inputStream.bufferedReader().use { it.readLines() }
+            val error = process.errorStream.bufferedReader().use { it.readText() }
+            val exitCode = process.waitFor()
+            process.destroy()
+            if (exitCode != 0) error(error.ifBlank { "无法扫描应用日志目录" })
+            output.map(String::trim).filter { it.startsWith("$rootPath/") && !it.contains("/../") }
+        }
+    }
+
+    suspend fun statFile(path: String): PrivilegedFileStat = withContext(Dispatchers.IO) {
+        if (!hasPermission() || !isTrustedExternalAppPath(path)) return@withContext PrivilegedFileStat()
+        runCatching {
+            val process = Shizuku.newProcess(arrayOf("stat", "-c", "%s|%Y", path), null, null)
+            val output = process.inputStream.bufferedReader().use { it.readText().trim() }
+            process.errorStream.close()
+            if (process.waitFor() != 0) {
+                process.destroy()
+                return@runCatching PrivilegedFileStat()
+            }
+            process.destroy()
+            val parts = output.lineSequence().firstOrNull().orEmpty().split('|')
+            PrivilegedFileStat(
+                size = parts.getOrNull(0)?.toLongOrNull() ?: -1L,
+                modifiedAt = (parts.getOrNull(1)?.toLongOrNull() ?: 0L) * 1000L
+            )
+        }.getOrDefault(PrivilegedFileStat())
+    }
+
+    suspend fun copyFile(path: String, destination: File): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            require(hasPermission()) { "Shizuku 未授权" }
+            require(isTrustedExternalAppPath(path)) { "日志文件路径不受信任" }
+            destination.parentFile?.mkdirs()
+            val process = Shizuku.newProcess(arrayOf("cat", path), null, null)
+            destination.outputStream().buffered().use { output ->
+                process.inputStream.use { input -> input.copyTo(output) }
+            }
+            val error = process.errorStream.bufferedReader().use { it.readText() }
+            val exitCode = process.waitFor()
+            process.destroy()
+            if (exitCode != 0 || !destination.isFile) {
+                destination.delete()
+                error(error.ifBlank { "读取日志文件失败" })
+            }
+        }
+    }
+
+    private fun isTrustedLogRoot(path: String): Boolean = TRUSTED_LOG_ROOTS.any { path == it }
+
+    private fun isTrustedExternalAppPath(path: String): Boolean =
+        TRUSTED_LOG_ROOTS.any { path.startsWith("$it/") } && !path.contains("/../")
+
     private fun executeShellCommand(command: String): String {
         return try {
             val process = Shizuku.newProcess(arrayOf("sh", "-c", command), null, null)
@@ -116,4 +179,9 @@ object ShizukuManager {
             "Exception: ${e.message}"
         }
     }
+
+    private val TRUSTED_LOG_ROOTS = setOf(
+        "/storage/emulated/0/Android/data/com.ywxk.fluorine/files",
+        "/storage/emulated/0/Android/data/com.ywxk.fluorine:downloader"
+    )
 }

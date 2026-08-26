@@ -12,7 +12,9 @@ import kotlinx.coroutines.launch
 import org.cloud.sonic.android.R
 import org.cloud.sonic.android.MainActivity
 import org.cloud.sonic.android.databinding.ActivityImagePreviewBinding
+import org.cloud.sonic.android.model.PlatformConfig
 import org.cloud.sonic.android.repository.PlatformSyncRepository
+import org.cloud.sonic.android.ui.common.PlatformAccountPicker
 import org.cloud.sonic.android.ui.common.applySystemBarMargins
 import java.io.File
 
@@ -52,33 +54,44 @@ class ImagePreviewActivity : AppCompatActivity() {
                 Snackbar.make(binding.root, "图片无效，无法上传", Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            if (!platformRepo.getConfig().isBound) {
-                Snackbar.make(binding.root, "请先绑定测试平台账号", Snackbar.LENGTH_LONG)
-                    .setAction(R.string.action_go_to_binding) { openDefectAssistant() }
-                    .show()
-                return@setOnClickListener
+            PlatformAccountPicker.show(
+                context = this,
+                repository = platformRepo,
+                onMissing = {
+                    Snackbar.make(binding.root, "请先绑定测试平台账号", Snackbar.LENGTH_LONG)
+                        .setAction(R.string.action_go_to_binding) { openDefectAssistant() }
+                        .show()
+                }
+            ) { target -> uploadImage(imageUri, path, name, target) }
+        }
+    }
+
+    private fun uploadImage(
+        imageUri: Uri,
+        path: String,
+        name: String,
+        target: PlatformConfig
+    ) {
+        binding.btnUploadPlatform.isEnabled = false
+        binding.btnUploadPlatform.setText(R.string.sending)
+
+        lifecycleScope.launch {
+            val result = if (path.isNotBlank() && File(path).exists()) {
+                platformRepo.uploadAttachment(File(path), targetConfig = target)
+            } else {
+                platformRepo.uploadAttachment(imageUri, name, targetConfig = target)
             }
 
-            binding.btnUploadPlatform.isEnabled = false
-            binding.btnUploadPlatform.setText(R.string.sending)
+            binding.btnUploadPlatform.isEnabled = true
+            binding.btnUploadPlatform.setText(R.string.send_to_defect_assistant_preview)
 
-            lifecycleScope.launch {
-                val result = if (path.isNotBlank() && File(path).exists()) {
-                    platformRepo.uploadAttachment(File(path))
-                } else {
-                    platformRepo.uploadAttachment(imageUri, name)
-                }
-
-                binding.btnUploadPlatform.isEnabled = true
-                binding.btnUploadPlatform.setText(R.string.send_to_defect_assistant_preview)
-
-                result.onSuccess {
-                    Snackbar.make(binding.root, "已发送至缺陷助手", Snackbar.LENGTH_LONG)
-                        .setAction(R.string.nav_defect) { openDefectAssistant() }
-                        .show()
-                }.onFailure { err ->
-                    Snackbar.make(binding.root, "上传失败：${err.message}", Snackbar.LENGTH_LONG).show()
-                }
+            result.onSuccess {
+                val account = target.username.ifBlank { "用户 ${target.userId}" }
+                Snackbar.make(binding.root, "已发送至 $account", Snackbar.LENGTH_LONG)
+                    .setAction(R.string.nav_defect) { openDefectAssistant() }
+                    .show()
+            }.onFailure { err ->
+                Snackbar.make(binding.root, "上传失败：${err.message}", Snackbar.LENGTH_LONG).show()
             }
         }
     }

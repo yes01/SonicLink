@@ -18,6 +18,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okio.BufferedSink
 import okio.source
 import org.cloud.sonic.android.agent.SonicLinkConfigStore
+import org.cloud.sonic.android.media.MobileMediaBridgeService
 import org.cloud.sonic.android.model.PlatformConfig
 import java.io.File
 import java.net.InetAddress
@@ -34,6 +35,11 @@ data class UploadedAttachment(
     val timestamp: Long = System.currentTimeMillis()
 )
 
+data class PlatformBindingCredential(
+    val config: PlatformConfig,
+    val deviceToken: String
+)
+
 class PlatformSyncRepository(context: Context) {
     private val appContext = context.applicationContext
     private val prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -47,10 +53,75 @@ class PlatformSyncRepository(context: Context) {
         .build()
 
     fun getConfig(): PlatformConfig {
-        val json = prefs.getString(KEY_CONFIG, null) ?: return PlatformConfig()
+        val bindings = getBindings().filter { it.isBound }
+        if (bindings.isEmpty()) return PlatformConfig()
+        val selectedKey = prefs.getString(KEY_SELECTED_BINDING, null)
+        val selected = bindings.firstOrNull { it.bindingKey == selectedKey } ?: bindings.first()
+        if (selected.bindingKey != selectedKey) selectBinding(selected.bindingKey)
+        return selected
+    }
+
+    fun getBindings(): List<PlatformConfig> {
+        migrateLegacyConfig()
+        val json = prefs.getString(KEY_BINDINGS, null) ?: return emptyList()
+        val list = runCatching {
+            val listType = object : com.google.gson.reflect.TypeToken<List<PlatformConfig>>() {}.type
+            gson.fromJson<List<PlatformConfig>>(json, listType) ?: emptyList()
+        }.getOrDefault(emptyList())
+        var changed = false
+        val validated = list.map { config ->
+            if (config.deviceCredentialPresent && secureTokenStore.get(config.bindingKey).isBlank()) {
+                changed = true
+                config.copy(deviceCredentialPresent = false, token = "")
+            } else {
+                config.copy(token = "")
+            }
+        }
+        if (changed) saveBindings(validated)
+        return validated
+    }
+
+    fun getBindingCredentials(): List<PlatformBindingCredential> =
+        getBindings().filter { it.isBound }.mapNotNull { config ->
+            secureTokenStore.get(config.bindingKey).takeIf { it.isNotBlank() }?.let { token ->
+                PlatformBindingCredential(config, token)
+            }
+        }
+
+    fun selectBinding(bindingKey: String): Boolean {
+        val exists = getBindings().any { it.bindingKey == bindingKey && it.isBound }
+        if (exists) prefs.edit().putString(KEY_SELECTED_BINDING, bindingKey).apply()
+        return exists
+    }
+
+    fun saveConfig(config: PlatformConfig) {
+        val bindings = getBindings().toMutableList()
+        val index = bindings.indexOfFirst { it.bindingKey == config.bindingKey }
+        val sanitized = config.copy(token = "")
+        if (index >= 0) bindings[index] = sanitized else bindings.add(sanitized)
+        saveBindings(bindings)
+        prefs.edit().putString(KEY_SELECTED_BINDING, sanitized.bindingKey).apply()
+    }
+
+    fun clearBinding(bindingKey: String = getConfig().bindingKey) {
+        if (bindingKey.isBlank()) return
+        secureTokenStore.remove(bindingKey)
+        val remaining = getBindings().filterNot { it.bindingKey == bindingKey }
+        saveBindings(remaining)
+        val selectedKey = prefs.getString(KEY_SELECTED_BINDING, null)
+        if (selectedKey == bindingKey) {
+            val editor = prefs.edit()
+            remaining.firstOrNull { it.isBound }?.let { editor.putString(KEY_SELECTED_BINDING, it.bindingKey) }
+                ?: editor.remove(KEY_SELECTED_BINDING)
+            editor.apply()
+        }
+        MobileMediaBridgeService.sync(appContext, force = true)
+    }
+
+    private fun parseConfig(json: String): PlatformConfig {
         val root = runCatching { JsonParser.parseString(json).asJsonObject }.getOrElse { return PlatformConfig() }
         val hadLegacyUserToken = root.string("token").isNotBlank()
-        val config = runCatching {
+        return runCatching {
             PlatformConfig(
                 serverUrl = root.string("serverUrl"),
                 username = root.string("username"),
@@ -63,28 +134,38 @@ class PlatformSyncRepository(context: Context) {
                 boundAt = root.long("boundAt")
             )
         }.getOrElse { return PlatformConfig() }
-        if (hadLegacyUserToken) saveConfig(config)
-        if (config.deviceCredentialPresent && secureTokenStore.get().isBlank()) {
-            val invalid = config.copy(deviceCredentialPresent = false)
-            saveConfig(invalid)
-            return invalid
+    }
+
+    private fun migrateLegacyConfig() {
+        if (prefs.contains(KEY_BINDINGS)) return
+        val legacyJson = prefs.getString(KEY_CONFIG, null)
+        if (legacyJson.isNullOrBlank()) {
+            saveBindings(emptyList())
+            return
         }
-        return config
+        var config = parseConfig(legacyJson)
+        if (config.serverUrl.isBlank() || config.userId <= 0) {
+            saveBindings(emptyList())
+            prefs.edit().remove(KEY_CONFIG).apply()
+            return
+        }
+        val credentialPresent = config.deviceCredentialPresent && secureTokenStore.migrateLegacyToken(config.bindingKey)
+        config = config.copy(deviceCredentialPresent = credentialPresent, token = "")
+        saveBindings(listOf(config))
+        prefs.edit()
+            .putString(KEY_SELECTED_BINDING, config.bindingKey)
+            .remove(KEY_CONFIG)
+            .apply()
     }
 
-    fun saveConfig(config: PlatformConfig) {
-        prefs.edit().putString(KEY_CONFIG, gson.toJson(config.copy(token = ""))).apply()
+    private fun saveBindings(bindings: List<PlatformConfig>) {
+        prefs.edit().putString(KEY_BINDINGS, gson.toJson(bindings.map { it.copy(token = "") })).apply()
     }
 
-    fun clearBinding() {
-        secureTokenStore.clear()
-        prefs.edit().remove(KEY_CONFIG).apply()
-    }
-
-    suspend fun revokeBinding(): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun revokeBinding(bindingKey: String = getConfig().bindingKey): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val config = getConfig()
-            val deviceToken = secureTokenStore.get()
+            val config = getBindings().firstOrNull { it.bindingKey == bindingKey } ?: return@runCatching
+            val deviceToken = secureTokenStore.get(config.bindingKey)
             if (config.serverUrl.isNotBlank() && config.deviceId.isNotBlank() && deviceToken.isNotBlank()) {
                 val request = Request.Builder()
                     .url("${config.serverUrl}/api/v1/bug-submit/mobile/device")
@@ -94,7 +175,7 @@ class PlatformSyncRepository(context: Context) {
                     .build()
                 executeForData(request)
             }
-            clearBinding()
+            clearBinding(config.bindingKey)
         }
     }
 
@@ -124,8 +205,6 @@ class PlatformSyncRepository(context: Context) {
             val data = executeForData(request)
             val deviceToken = data.get("device_token")?.asString.orEmpty()
             require(deviceToken.isNotBlank()) { "平台未返回设备凭证" }
-            secureTokenStore.save(deviceToken)
-
             val config = PlatformConfig(
                 serverUrl = baseUrl,
                 username = data.get("username")?.asString.orEmpty(),
@@ -136,21 +215,32 @@ class PlatformSyncRepository(context: Context) {
                 defaultProjectId = data.get("project_id")?.asInt ?: payload.get("project_id")?.asInt ?: 0,
                 boundAt = System.currentTimeMillis()
             )
+            secureTokenStore.save(config.bindingKey, deviceToken)
             saveConfig(config)
+            MobileMediaBridgeService.sync(appContext, force = true)
             config
         }
     }
 
-    suspend fun uploadAttachment(uri: Uri, fileName: String, projectId: Int? = null): Result<UploadedAttachment> =
+    suspend fun uploadAttachment(
+        uri: Uri,
+        fileName: String,
+        projectId: Int? = null,
+        targetConfig: PlatformConfig? = null
+    ): Result<UploadedAttachment> =
         withContext(Dispatchers.IO) {
             val mimeType = appContext.contentResolver.getType(uri).orEmpty().ifBlank { mimeTypeFor(fileName) }
             val body = ContentUriRequestBody(appContext, uri, mimeType.toMediaTypeOrNull())
-            upload(fileName, body, projectId)
+            upload(fileName, body, projectId, targetConfig)
         }
 
-    suspend fun uploadAttachment(file: File, projectId: Int? = null): Result<UploadedAttachment> =
+    suspend fun uploadAttachment(
+        file: File,
+        projectId: Int? = null,
+        targetConfig: PlatformConfig? = null
+    ): Result<UploadedAttachment> =
         withContext(Dispatchers.IO) {
-            upload(file.name, file.asRequestBody(mimeTypeFor(file.name).toMediaTypeOrNull()), projectId)
+            upload(file.name, file.asRequestBody(mimeTypeFor(file.name).toMediaTypeOrNull()), projectId, targetConfig)
         }
 
     fun getUploadHistory(): List<UploadedAttachment> {
@@ -161,11 +251,16 @@ class PlatformSyncRepository(context: Context) {
         }.getOrDefault(emptyList())
     }
 
-    private fun upload(fileName: String, fileBody: RequestBody, projectId: Int?): Result<UploadedAttachment> {
+    private fun upload(
+        fileName: String,
+        fileBody: RequestBody,
+        projectId: Int?,
+        targetConfig: PlatformConfig?
+    ): Result<UploadedAttachment> {
         return runCatching {
-            val config = getConfig()
+            val config = targetConfig ?: getConfig()
             require(config.isBound) { "未绑定测试平台，请先在缺陷协同页扫码" }
-            val deviceToken = secureTokenStore.get()
+            val deviceToken = secureTokenStore.get(config.bindingKey)
             require(deviceToken.isNotBlank()) { "设备凭证已失效，请重新扫码绑定" }
             if (projectId != null && projectId > 0 && projectId != config.defaultProjectId) {
                 error("当前手机会话属于项目 ${config.defaultProjectId}，请在网页切换项目后重新扫码")
@@ -280,6 +375,8 @@ class PlatformSyncRepository(context: Context) {
     companion object {
         private const val PREFS_NAME = "sonic_link_platform_config"
         private const val KEY_CONFIG = "platform_config_json"
+        private const val KEY_BINDINGS = "platform_bindings_json"
+        private const val KEY_SELECTED_BINDING = "platform_selected_binding"
         private const val KEY_HISTORY = "platform_upload_history_json"
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaTypeOrNull()
     }

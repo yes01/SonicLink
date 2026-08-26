@@ -25,6 +25,8 @@ import org.cloud.sonic.android.databinding.FragmentDefectAssistantBinding
 import org.cloud.sonic.android.model.ChatMessage
 import org.cloud.sonic.android.repository.ChatRepository
 import org.cloud.sonic.android.repository.PlatformSyncRepository
+import org.cloud.sonic.android.ui.common.PlatformAccountPicker
+import org.cloud.sonic.android.ui.logs.AppLogUploadActivity
 import org.cloud.sonic.android.ui.qr.QrScanActivity
 
 class DefectAssistantFragment : Fragment() {
@@ -41,8 +43,9 @@ class DefectAssistantFragment : Fragment() {
             if (qrText.isNotBlank()) {
                 viewLifecycleOwner.lifecycleScope.launch {
                     platformRepo.pairWithQrCode(qrText)
-                        .onSuccess {
-                            Snackbar.make(binding.root, "绑定成功，当前缺陷草稿已关联", Snackbar.LENGTH_LONG).show()
+                        .onSuccess { config ->
+                            val account = config.username.ifBlank { "用户 ${config.userId}" }
+                            Snackbar.make(binding.root, "已绑定并选择 $account", Snackbar.LENGTH_LONG).show()
                             renderBindingCard()
                         }
                         .onFailure { error ->
@@ -91,6 +94,10 @@ class DefectAssistantFragment : Fragment() {
 
         binding.cardBinding.setOnClickListener {
             showBindingActions()
+        }
+
+        binding.btnUploadAppLogs.setOnClickListener {
+            startActivity(Intent(requireContext(), AppLogUploadActivity::class.java))
         }
 
         binding.defectTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -151,12 +158,17 @@ class DefectAssistantFragment : Fragment() {
         if (_binding == null) return
         val context = context ?: return
         val config = platformRepo.getConfig()
+        val bindingCount = platformRepo.getBindings().count { it.isBound }
         if (config.isBound) {
             val userDisplay = if (config.username.isNotBlank()) config.username else "用户ID: ${config.userId}"
-            binding.tvBindingStatus.text = getString(R.string.platform_bound_status, userDisplay)
+            binding.tvBindingStatus.text = if (bindingCount > 1) {
+                "当前发送账号: $userDisplay（共 $bindingCount 个）"
+            } else {
+                getString(R.string.platform_bound_status, userDisplay)
+            }
             binding.tvBindingStatus.setTextColor(ContextCompat.getColor(context, R.color.status_success))
             binding.tvServerUrl.text = "服务器: ${config.serverUrl} · 项目 ${config.defaultProjectId}"
-            binding.btnScanQr.text = "重新绑定"
+            binding.btnScanQr.text = "绑定新账号"
             binding.btnManualConfig.text = "管理绑定"
         } else {
             binding.tvBindingStatus.text = getString(R.string.platform_unbound_status)
@@ -178,15 +190,50 @@ class DefectAssistantFragment : Fragment() {
                 .show()
             return
         }
+        val bindings = platformRepo.getBindings().filter { it.isBound }
+        val actions = buildList {
+            if (bindings.size > 1) add("切换发送账号")
+            add("绑定新账号")
+            add("解除当前账号")
+        }
         MaterialAlertDialogBuilder(context)
-            .setTitle("解除手机绑定")
-            .setMessage("解除后需要重新扫描网页二维码才能继续上传附件。")
+            .setTitle("管理平台绑定")
+            .setItems(actions.toTypedArray()) { _, which ->
+                when (actions[which]) {
+                    "切换发送账号" -> showAccountSwitcher()
+                    "绑定新账号" -> scanQrLauncher.launch(Intent(context, QrScanActivity::class.java))
+                    "解除当前账号" -> confirmRevokeCurrent()
+                }
+            }
+            .show()
+    }
+
+    private fun showAccountSwitcher() {
+        PlatformAccountPicker.show(
+            context = requireContext(),
+            repository = platformRepo,
+            title = "选择默认发送账号",
+            positiveLabel = "选择",
+            onMissing = { renderBindingCard() }
+        ) { selected ->
+            renderBindingCard()
+            val account = selected.username.ifBlank { "用户 ${selected.userId}" }
+            Snackbar.make(binding.root, "已切换到 $account", Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun confirmRevokeCurrent() {
+        val current = platformRepo.getConfig()
+        val account = current.username.ifBlank { "用户 ${current.userId}" }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("解除 $account")
+            .setMessage("只解除当前账号，手机上的其他平台账号仍可继续使用。")
             .setPositiveButton("解除") { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
-                    platformRepo.revokeBinding()
+                    platformRepo.revokeBinding(current.bindingKey)
                         .onSuccess {
                             renderBindingCard()
-                            Snackbar.make(binding.root, "设备绑定已解除", Snackbar.LENGTH_SHORT).show()
+                            Snackbar.make(binding.root, "已解除 $account", Snackbar.LENGTH_SHORT).show()
                         }
                         .onFailure { error ->
                             Snackbar.make(binding.root, error.message ?: "解除绑定失败", Snackbar.LENGTH_LONG).show()

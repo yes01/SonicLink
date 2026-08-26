@@ -121,6 +121,15 @@
                         android:layout_marginTop="@dimen/spacing_8"
                         android:text="@string/manual_bind_config"
                         app:icon="@drawable/ic_edit" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUploadAppLogs"
+                        style="@style/Widget.SonicLink.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_8"
+                        android:text="@string/app_log_upload_entry"
+                        app:icon="@drawable/ic_file" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
