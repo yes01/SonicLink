@@ -26,6 +26,7 @@
     <string name="sonic_link_error_missing_ws">请先配置 WebSocket 地址</string>
     <string name="sonic_link_screen_permission_title">屏幕采集</string>
     <string name="sonic_link_screen_permission_ready">已获得屏幕采集授权</string>
+    <string name="screen_capture_permission_not_granted">未授予屏幕采集权限</string>
     <string name="main_title">控制台</string>
     <string name="main_subtitle">连接到测试平台，实现远程控制与协同</string>
     <string name="section_platform">平台连接</string>
@@ -72,6 +73,12 @@
     <string name="issue_grant_capture">请授权屏幕采集</string>
     <string name="bind_shizuku">绑定权限</string>
     <string name="shizuku_success">Shizuku 提权成功！</string>
+    <string name="dashboard_status_refreshed">状态已刷新</string>
+    <string name="shizuku_service_unavailable">Shizuku 未连接，请先打开 Shizuku 恢复服务</string>
+    <string name="shizuku_version_unsupported">当前 Shizuku 版本不支持授权</string>
+    <string name="shizuku_permission_not_granted">未授予 Shizuku 权限</string>
+    <string name="shizuku_permission_request_failed">无法请求 Shizuku 权限，请稍后重试</string>
+    <string name="shizuku_appops_failed">系统权限配置失败，请检查 Shizuku 状态</string>
     <string name="issue_stream_event">投屏: %1$s</string>
     <string name="ready_for_agent">就绪</string>
     <string name="needs_attention">待处理: %1$s</string>
@@ -79,7 +86,7 @@
     <string name="heartbeat_label">心跳 %1$s</string>
     <string name="heartbeat_active">心跳正常</string>
     <string name="heartbeat_waiting">等待心跳响应</string>
-    <string name="device_status_format">%1$s - %2$dx%3$d</string>
+    <string name="device_status_format">%1$s · %2$dx%3$d · 旋转 %4$d°</string>
 
     <!-- Navigation Tabs -->
     <string name="nav_dashboard">控制台</string>
@@ -94,6 +101,7 @@
     <string name="action_cancel_selection">取消</string>
     <string name="action_go_to_binding">去绑定</string>
     <string name="action_retry">重试</string>
+    <string name="action_back">返回</string>
     <string name="action_refresh_status">刷新</string>
     <string name="action_open_system_app">用系统应用打开</string>
     <string name="action_copy_file_path">复制路径</string>
@@ -165,14 +173,17 @@
     <string name="app_log_step_two">2</string>
     <string name="app_log_step_three">3</string>
     <string name="app_log_target_title">目标应用</string>
-    <string name="app_log_target_summary">当前支持氧气，其他应用将逐步接入</string>
+    <string name="app_log_target_summary">选择需要采集日志的目标应用</string>
     <string name="app_log_oxygen">氧气</string>
-    <string name="app_log_yes">Yes（敬请期待）</string>
     <string name="app_log_supported">已支持</string>
     <string name="app_log_yes_short">Yes</string>
-    <string name="app_log_coming_soon">敬请期待</string>
     <string name="app_log_context_title">问题信息</string>
     <string name="app_log_context_summary">用于匹配发生当天及对应场景的日志</string>
+    <string name="app_log_yes_context_title">日志范围</string>
+    <string name="app_log_yes_context_summary">按发生时间选择当天和最近的日志文件</string>
+    <string name="app_log_yes_default">默认</string>
+    <string name="app_log_yes_enhanced">增强</string>
+    <string name="app_log_yes_fallback">兜底</string>
     <string name="app_log_event_time_title">Bug 发生时间</string>
     <string name="app_log_scenario_title">问题类型</string>
     <string name="app_log_scenario_general">通用</string>
@@ -184,6 +195,7 @@
     <string name="app_log_files_summary">自动匹配推荐文件，也可从本机手动导入</string>
     <string name="app_log_scan_initial">按发生时间和问题类型扫描；无法自动读取时可手动导入已复制到 Download 的日志</string>
     <string name="app_log_oxygen_missing">当前未检测到氧气应用，仍可从 Download 扫描或手动导入日志</string>
+    <string name="app_log_target_missing">当前未检测到 %1$s，仍可从 Download 扫描或手动导入日志</string>
     <string name="app_log_scan_result">来源：%1$s。匹配 %2$d 个推荐文件</string>
     <string name="app_log_scan_failed">自动扫描失败：%1$s。请使用手动导入兜底。</string>
     <string name="app_log_selection_summary">已选 %1$d / %2$d 个文件 · %3$s</string>

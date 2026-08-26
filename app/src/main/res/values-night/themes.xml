@@ -10,6 +10,10 @@
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
         <item name="android:windowBackground">#FF0F172A</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SonicLink.MaterialAlertDialog</item>
+        <item name="snackbarStyle">@style/Widget.SonicLink.Snackbar</item>
+        <item name="snackbarTextViewStyle">@style/Widget.SonicLink.Snackbar.TextView</item>
+        <item name="snackbarButtonStyle">@style/Widget.SonicLink.Snackbar.Button</item>
         <!-- Simplify ripple effects globally for cleaner look -->
         <item name="android:colorControlHighlight">#1AFFFFFF</item>
     </style>

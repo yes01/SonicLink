@@ -14,6 +14,7 @@ import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -22,11 +23,14 @@ import com.gyf.immersionbar.ktx.immersionBar
 import kotlinx.coroutines.launch
 import org.cloud.sonic.android.R
 import org.cloud.sonic.android.databinding.ActivityAppLogUploadBinding
+import org.cloud.sonic.android.logs.AppLogCollector
 import org.cloud.sonic.android.logs.AppLogPackager
 import org.cloud.sonic.android.logs.LogCandidate
 import org.cloud.sonic.android.logs.LogScenario
 import org.cloud.sonic.android.logs.LogSourceKind
+import org.cloud.sonic.android.logs.LogTargetApp
 import org.cloud.sonic.android.logs.OxygenLogCollector
+import org.cloud.sonic.android.logs.YesLogCollector
 import org.cloud.sonic.android.repository.PlatformSyncRepository
 import org.cloud.sonic.android.ui.common.PlatformAccountPicker
 import java.text.SimpleDateFormat
@@ -36,13 +40,14 @@ import java.util.Locale
 
 class AppLogUploadActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAppLogUploadBinding
-    private lateinit var collector: OxygenLogCollector
+    private lateinit var collectors: Map<LogTargetApp, AppLogCollector>
     private lateinit var packager: AppLogPackager
     private lateinit var platformRepository: PlatformSyncRepository
 
     private val eventCalendar = Calendar.getInstance()
     private val candidates = linkedMapOf<String, LogCandidate>()
     private val selectedIds = linkedSetOf<String>()
+    private var targetApp = LogTargetApp.OXYGEN
     private var scenario = LogScenario.GENERAL
     private var busy = false
 
@@ -83,7 +88,10 @@ class AppLogUploadActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAppLogUploadBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        collector = OxygenLogCollector(this)
+        collectors = mapOf(
+            LogTargetApp.OXYGEN to OxygenLogCollector(this),
+            LogTargetApp.YES to YesLogCollector(this)
+        )
         packager = AppLogPackager(this)
         platformRepository = PlatformSyncRepository(this)
 
@@ -96,12 +104,9 @@ class AppLogUploadActivity : AppCompatActivity() {
         }
 
         binding.toolbar.setNavigationOnClickListener { finish() }
-        binding.btnOxygen.setOnClickListener {
-            Snackbar.make(binding.root, "已选择氧气应用", Snackbar.LENGTH_SHORT).show()
-        }
-        binding.btnYesApp.setOnClickListener {
-            Snackbar.make(binding.root, "Yes 应用日志采集功能敬请期待", Snackbar.LENGTH_LONG).show()
-        }
+        binding.toolbar.navigationContentDescription = getString(R.string.action_back)
+        binding.btnOxygen.setOnClickListener { selectTarget(LogTargetApp.OXYGEN) }
+        binding.btnYesApp.setOnClickListener { selectTarget(LogTargetApp.YES) }
         binding.btnEventTime.setOnClickListener { selectEventDate() }
         binding.scenarioGroup.setOnCheckedStateChangeListener { _, checkedIds ->
             scenario = when (checkedIds.firstOrNull()) {
@@ -118,10 +123,63 @@ class AppLogUploadActivity : AppCompatActivity() {
         binding.btnUploadLogs.setOnClickListener { confirmUpload() }
 
         renderEventTime()
-        if (!collector.isOxygenInstalled()) {
-            binding.tvScanStatus.setText(R.string.app_log_oxygen_missing)
-        }
+        selectTarget(LogTargetApp.OXYGEN, announce = false)
     }
+
+    private fun selectTarget(app: LogTargetApp, announce: Boolean = true) {
+        if (app != targetApp) {
+            candidates.clear()
+            selectedIds.clear()
+        }
+        targetApp = app
+        scenario = LogScenario.GENERAL
+        binding.scenarioGroup.check(R.id.chipGeneral)
+
+        val oxygenSelected = app == LogTargetApp.OXYGEN
+        styleTargetCard(binding.btnOxygen, binding.ivOxygenCheck, oxygenSelected)
+        styleTargetCard(binding.btnYesApp, binding.ivYesCheck, !oxygenSelected)
+        binding.tvYesStatus.setTextColor(ContextCompat.getColor(this, if (oxygenSelected) R.color.text_tertiary else R.color.brand_primary))
+
+        if (oxygenSelected) {
+            binding.tvContextTitle.setText(R.string.app_log_context_title)
+            binding.tvContextSummary.setText(R.string.app_log_context_summary)
+            binding.chipGeneral.setText(R.string.app_log_scenario_general)
+            binding.chipCrash.setText(R.string.app_log_scenario_crash)
+            binding.chipMessage.setText(R.string.app_log_scenario_message)
+            binding.chipRtc.visibility = View.VISIBLE
+            binding.chipDownload.visibility = View.VISIBLE
+        } else {
+            binding.tvContextTitle.setText(R.string.app_log_yes_context_title)
+            binding.tvContextSummary.setText(R.string.app_log_yes_context_summary)
+            binding.chipGeneral.setText(R.string.app_log_yes_default)
+            binding.chipCrash.setText(R.string.app_log_yes_enhanced)
+            binding.chipMessage.setText(R.string.app_log_yes_fallback)
+            binding.chipRtc.visibility = View.GONE
+            binding.chipDownload.visibility = View.GONE
+        }
+
+        val collector = activeCollector()
+        binding.tvScanStatus.text = if (collector.isInstalled()) {
+            getString(R.string.app_log_scan_initial)
+        } else {
+            getString(R.string.app_log_target_missing, app.displayName)
+        }
+        renderCandidates()
+        if (announce) Snackbar.make(binding.root, "已选择 ${app.displayName} 应用", Snackbar.LENGTH_SHORT).show()
+    }
+
+    private fun styleTargetCard(
+        card: com.google.android.material.card.MaterialCardView,
+        check: View,
+        selected: Boolean
+    ) {
+        card.setCardBackgroundColor(ContextCompat.getColor(this, if (selected) R.color.brand_primary_light else R.color.bg_card))
+        card.setStrokeColor(ContextCompat.getColor(this, if (selected) R.color.brand_primary else R.color.border_light))
+        card.strokeWidth = if (selected) 2 else 1
+        check.visibility = if (selected) View.VISIBLE else View.GONE
+    }
+
+    private fun activeCollector(): AppLogCollector = collectors.getValue(targetApp)
 
     private fun selectEventDate() {
         DatePickerDialog(
@@ -165,16 +223,16 @@ class AppLogUploadActivity : AppCompatActivity() {
             candidates.remove(it)
             selectedIds.remove(it)
         }
-        binding.tvScanStatus.text = "发生时间或问题类型已变化，请重新扫描；手动导入文件已保留"
+        binding.tvScanStatus.text = "发生时间或日志规则已变化，请重新扫描；手动导入文件已保留"
         renderCandidates()
     }
 
     @SuppressLint("SetTextI18n")
     private fun scanLogs() {
         if (busy) return
-        setBusy(true, "正在按规则扫描氧气日志...")
+        setBusy(true, "正在按规则扫描 ${targetApp.displayName} 日志...")
         lifecycleScope.launch {
-            runCatching { collector.scan(eventCalendar.timeInMillis, scenario) }
+            runCatching { activeCollector().scan(eventCalendar.timeInMillis, scenario) }
                 .onSuccess { result ->
                     val manualFiles = candidates.values.filter { it.sourceKind == LogSourceKind.DOCUMENT }
                     candidates.clear()
@@ -203,8 +261,9 @@ class AppLogUploadActivity : AppCompatActivity() {
 
     private fun explainManualImport() {
         MaterialAlertDialogBuilder(this)
+            .setIcon(R.drawable.ic_folder)
             .setTitle("手动导入日志")
-            .setMessage("如果系统不允许访问氧气的 Android/data 目录，请先使用厂商文件管理器或电脑 ADB 将日志复制到 Download，再在下一步选择 xlog、dmp、log、txt 或 zip 文件。")
+            .setMessage("如果系统不允许访问 ${targetApp.displayName} 的 Android/data 目录，请先使用厂商文件管理器或电脑 ADB 将日志复制到 Download，再在下一步选择 xlog、dmp、log、txt 或 zip 文件。")
             .setPositiveButton("选择文件") { _, _ ->
                 manualFilePicker.launch(arrayOf("application/octet-stream", "application/zip", "text/plain", "*/*"))
             }
@@ -268,7 +327,8 @@ class AppLogUploadActivity : AppCompatActivity() {
         if (selected.isEmpty()) return
         val totalSize = selected.sumOf { it.size.coerceAtLeast(0L) }
         MaterialAlertDialogBuilder(this)
-            .setTitle("确认上传应用日志")
+            .setIcon(R.drawable.ic_cloud_upload)
+            .setTitle("确认上传 ${targetApp.displayName} 日志")
             .setMessage("将打包 ${selected.size} 个文件（约 ${formatSize(totalSize)}）。日志可能包含账号、设备和聊天等敏感信息，请确认仅发送到对应的平台账号。")
             .setPositiveButton("选择账号并上传") { _, _ -> selectTargetAndUpload(selected) }
             .setNegativeButton("取消", null)
@@ -289,7 +349,7 @@ class AppLogUploadActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 var packageFile: java.io.File? = null
                 runCatching {
-                    packageFile = packager.createPackage(selected, eventCalendar.timeInMillis, scenario)
+                    packageFile = packager.createPackage(selected, eventCalendar.timeInMillis, scenario, targetApp)
                     platformRepository.uploadAttachment(packageFile!!, targetConfig = target).getOrThrow()
                 }.onSuccess {
                     Snackbar.make(binding.root, "日志包已发送到 ${target.username.ifBlank { "用户 ${target.userId}" }}", Snackbar.LENGTH_LONG).show()
@@ -310,6 +370,8 @@ class AppLogUploadActivity : AppCompatActivity() {
         binding.btnScanLogs.isEnabled = !value
         binding.btnManualImport.isEnabled = !value
         binding.btnEventTime.isEnabled = !value
+        binding.btnOxygen.isEnabled = !value
+        binding.btnYesApp.isEnabled = !value
         binding.scenarioGroup.isEnabled = !value
         for (index in 0 until binding.scenarioGroup.childCount) {
             binding.scenarioGroup.getChildAt(index).isEnabled = !value

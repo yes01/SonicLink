@@ -33,4 +33,46 @@
     <style name="Widget.Material3.BottomNavigationView.ActiveIndicator" parent="">
         <item name="android:color">@color/brand_primary_light</item>
     </style>
+
+    <style name="ShapeAppearance.SonicLink.Dialog" parent="ShapeAppearance.Material3.Corner.ExtraLarge">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
+
+    <style name="Widget.SonicLink.MaterialAlertDialog" parent="MaterialAlertDialog.Material3">
+        <item name="backgroundTint">@color/bg_card</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.SonicLink.Dialog</item>
+    </style>
+
+    <style name="ThemeOverlay.SonicLink.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="alertDialogStyle">@style/Widget.SonicLink.MaterialAlertDialog</item>
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorSurface">@color/bg_card</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+
+    <style name="ShapeAppearance.SonicLink.Snackbar" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="Widget.SonicLink.Snackbar" parent="Widget.Material3.Snackbar">
+        <item name="backgroundTint">@color/bg_card</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.SonicLink.Snackbar</item>
+        <item name="elevation">8dp</item>
+        <item name="animationMode">fade</item>
+    </style>
+
+    <style name="Widget.SonicLink.Snackbar.TextView" parent="Widget.Material3.Snackbar.TextView">
+        <item name="android:alpha">1</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="Widget.SonicLink.Snackbar.Button" parent="Widget.Material3.Button.TextButton.Snackbar">
+        <item name="android:textColor">@color/brand_primary</item>
+    </style>
 </resources>

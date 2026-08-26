@@ -1,7 +1,6 @@
 package org.cloud.sonic.android.utils
 
 import android.content.pm.PackageManager
-import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
@@ -10,6 +9,14 @@ import java.io.File
 import java.io.InputStreamReader
 
 object ShizukuManager {
+
+    enum class PermissionRequestResult {
+        REQUESTED,
+        ALREADY_GRANTED,
+        SERVICE_UNAVAILABLE,
+        UNSUPPORTED,
+        FAILED
+    }
 
     data class PrivilegedFileStat(
         val size: Long = -1L,
@@ -40,31 +47,29 @@ object ShizukuManager {
     /**
      * 请求 Shizuku 权限
      */
-    fun requestPermission(context: android.app.Activity) {
+    fun requestPermission(): PermissionRequestResult {
         if (!isShizukuAvailable()) {
-            Toast.makeText(context, "Shizuku 服务未运行，请先启动服务", Toast.LENGTH_LONG).show()
-            return
+            return PermissionRequestResult.SERVICE_UNAVAILABLE
         }
 
         if (hasPermission()) {
-            Toast.makeText(context, "Shizuku 权限已获取", Toast.LENGTH_SHORT).show()
-            return
+            return PermissionRequestResult.ALREADY_GRANTED
         }
 
         if (Shizuku.isPreV11()) {
-            Toast.makeText(context, "Shizuku 版本过低或未启动", Toast.LENGTH_SHORT).show()
-            return
+            return PermissionRequestResult.UNSUPPORTED
         }
 
-        try {
+        return try {
             if (Shizuku.shouldShowRequestPermissionRationale()) {
-                Toast.makeText(context, "请在 Shizuku 应用中允许授权", Toast.LENGTH_LONG).show()
+                SLog.i("Shizuku permission rationale should be shown by the system authorization flow")
             }
+            Shizuku.requestPermission(REQUEST_CODE_SHIZUKU)
+            PermissionRequestResult.REQUESTED
         } catch (e: Exception) {
-            SLog.w("Shizuku check rationale failed: \${e.message}")
+            SLog.w("Shizuku permission request failed: ${e.message}")
+            PermissionRequestResult.FAILED
         }
-
-        Shizuku.requestPermission(REQUEST_CODE_SHIZUKU)
     }
 
     /**
@@ -182,6 +187,7 @@ object ShizukuManager {
 
     private val TRUSTED_LOG_ROOTS = setOf(
         "/storage/emulated/0/Android/data/com.ywxk.fluorine/files",
-        "/storage/emulated/0/Android/data/com.ywxk.fluorine:downloader"
+        "/storage/emulated/0/Android/data/com.ywxk.fluorine:downloader",
+        "/storage/emulated/0/Android/data/com.funnyheart.fish/files"
     )
 }

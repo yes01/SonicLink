@@ -3,6 +3,20 @@ package org.cloud.sonic.android.logs
 import android.net.Uri
 import java.io.File
 
+enum class LogTargetApp(val displayName: String, val packageName: String) {
+    OXYGEN("氧气", "com.ywxk.fluorine"),
+    YES("Yes", "com.funnyheart.fish");
+
+    fun ruleDisplayName(scenario: LogScenario): String = when (this) {
+        OXYGEN -> scenario.displayName
+        YES -> when (scenario) {
+            LogScenario.GENERAL -> "默认范围"
+            LogScenario.CRASH -> "增强范围"
+            else -> "兜底范围"
+        }
+    }
+}
+
 enum class LogScenario(val displayName: String) {
     GENERAL("通用问题"),
     CRASH("闪退/崩溃"),

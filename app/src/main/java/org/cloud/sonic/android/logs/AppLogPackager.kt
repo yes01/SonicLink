@@ -20,12 +20,13 @@ class AppLogPackager(private val context: Context) {
     suspend fun createPackage(
         files: List<LogCandidate>,
         eventTime: Long,
-        scenario: LogScenario
+        scenario: LogScenario,
+        targetApp: LogTargetApp
     ): File = withContext(Dispatchers.IO) {
         require(files.isNotEmpty()) { "没有选择日志文件" }
         val outputDir = File(context.cacheDir, "bug_logs").also { it.mkdirs() }
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val output = File(outputDir, "buglog_${OxygenLogCollector.OXYGEN_PACKAGE}_$timestamp.zip")
+        val output = File(outputDir, "buglog_${targetApp.packageName}_$timestamp.zip")
         val stagingDir = File(outputDir, "staging_${UUID.randomUUID()}").also { it.mkdirs() }
         val usedEntries = mutableSetOf<String>()
 
@@ -48,7 +49,7 @@ class AppLogPackager(private val context: Context) {
                     zip.closeEntry()
                 }
 
-                val manifest = buildManifest(files, eventTime, scenario)
+                val manifest = buildManifest(files, eventTime, scenario, targetApp)
                 zip.putNextEntry(ZipEntry("manifest.json"))
                 zip.write(manifest.toByteArray(Charsets.UTF_8))
                 zip.closeEntry()
@@ -73,8 +74,13 @@ class AppLogPackager(private val context: Context) {
         error("日志来源已失效：${candidate.displayName}")
     }
 
-    private fun buildManifest(files: List<LogCandidate>, eventTime: Long, scenario: LogScenario): String {
-        val packageInfo = runCatching { context.packageManager.getPackageInfo(OxygenLogCollector.OXYGEN_PACKAGE, 0) }.getOrNull()
+    private fun buildManifest(
+        files: List<LogCandidate>,
+        eventTime: Long,
+        scenario: LogScenario,
+        targetApp: LogTargetApp
+    ): String {
+        val packageInfo = runCatching { context.packageManager.getPackageInfo(targetApp.packageName, 0) }.getOrNull()
         @Suppress("DEPRECATION")
         val appVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             packageInfo?.longVersionCode
@@ -82,13 +88,13 @@ class AppLogPackager(private val context: Context) {
             packageInfo?.versionCode?.toLong()
         }
         val payload = linkedMapOf<String, Any?>(
-            "target_app" to "氧气",
-            "package_name" to OxygenLogCollector.OXYGEN_PACKAGE,
+            "target_app" to targetApp.displayName,
+            "package_name" to targetApp.packageName,
             "app_version_name" to packageInfo?.versionName,
             "app_version_code" to appVersionCode,
             "event_time" to SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US).format(Date(eventTime)),
             "scenario" to scenario.name,
-            "scenario_name" to scenario.displayName,
+            "scenario_name" to targetApp.ruleDisplayName(scenario),
             "collected_at" to SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.US).format(Date()),
             "collector" to "SonicLink",
             "files" to files.map { file ->

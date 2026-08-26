@@ -92,6 +92,7 @@ class QrScanActivity : AppCompatActivity() {
 
     private fun showCameraPermissionRecovery() {
         MaterialAlertDialogBuilder(this)
+            .setIcon(R.drawable.ic_qr_code)
             .setTitle("需要相机权限")
             .setMessage("扫码绑定需要使用相机。可以前往应用设置重新授权。")
             .setPositiveButton("前往设置") { _, _ ->

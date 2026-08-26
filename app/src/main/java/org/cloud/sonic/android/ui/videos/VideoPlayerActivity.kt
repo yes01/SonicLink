@@ -64,6 +64,7 @@ class VideoPlayerActivity : AppCompatActivity() {
             binding.videoView.setOnErrorListener { _, what, extra ->
                 binding.loadingProgress.visibility = View.GONE
                 MaterialAlertDialogBuilder(this)
+                    .setIcon(R.drawable.ic_nav_videos)
                     .setTitle("视频播放失败")
                     .setMessage("该视频格式可能不受支持或文件已损坏 (Error code: $what, extra: $extra)")
                     .setPositiveButton("确定") { _, _ -> finish() }

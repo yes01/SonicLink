@@ -2,6 +2,7 @@ package org.cloud.sonic.android.ui.common
 
 import android.content.Context
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import org.cloud.sonic.android.R
 import org.cloud.sonic.android.model.PlatformConfig
 import org.cloud.sonic.android.repository.PlatformSyncRepository
 import java.net.URI
@@ -30,6 +31,7 @@ object PlatformAccountPicker {
         var selectedIndex = bindings.indexOfFirst { it.bindingKey == currentKey }.coerceAtLeast(0)
         val labels = bindings.map(::bindingLabel).toTypedArray()
         val dialog = MaterialAlertDialogBuilder(context)
+            .setIcon(R.drawable.ic_phone_android)
             .setTitle(title)
             .setSingleChoiceItems(labels, selectedIndex) { _, which -> selectedIndex = which }
             .setPositiveButton(positiveLabel) { _, _ ->

@@ -1,5 +1,6 @@
 package org.cloud.sonic.android.ui.dashboard
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -12,6 +13,8 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.blankj.utilcode.util.AppUtils
@@ -37,6 +40,15 @@ class DashboardFragment : Fragment() {
     private lateinit var configStore: SonicLinkConfigStore
     private var lastRenderJob: kotlinx.coroutines.Job? = null
 
+    private val screenCaptureLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        renderStatus()
+        if (result.resultCode == Activity.RESULT_OK) {
+            showDashboardMessage(R.string.sonic_link_screen_permission_ready)
+        } else {
+            showDashboardMessage(R.string.screen_capture_permission_not_granted)
+        }
+    }
+
     private val statusReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             lastRenderJob?.cancel()
@@ -48,8 +60,12 @@ class DashboardFragment : Fragment() {
     }
 
     private val shizukuListener = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
-        if (requestCode == ShizukuManager.REQUEST_CODE_SHIZUKU && grantResult == PackageManager.PERMISSION_GRANTED) {
-            executeShizukuAppOps()
+        if (requestCode == ShizukuManager.REQUEST_CODE_SHIZUKU) {
+            if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                executeShizukuAppOps()
+            } else {
+                showDashboardMessage(R.string.shizuku_permission_not_granted, Snackbar.LENGTH_LONG)
+            }
         }
     }
 
@@ -116,7 +132,7 @@ class DashboardFragment : Fragment() {
     private fun bindActions() {
         binding.refreshStatus.setOnClickListener {
             renderStatus()
-            Snackbar.make(binding.root, "状态已刷新", Snackbar.LENGTH_SHORT).show()
+            showDashboardMessage(R.string.dashboard_status_refreshed)
         }
 
         binding.openConnectionSettings.setOnClickListener {
@@ -126,12 +142,12 @@ class DashboardFragment : Fragment() {
         binding.openAccessibility.setOnClickListener {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                Snackbar.make(binding.root, R.string.toast_restricted_settings, Snackbar.LENGTH_LONG).show()
+                showDashboardMessage(R.string.toast_restricted_settings, Snackbar.LENGTH_LONG)
             }
         }
 
         binding.requestCapture.setOnClickListener {
-            startActivity(Intent(requireContext(), ScreenCaptureActivity::class.java))
+            requestScreenCapture()
         }
 
         binding.openAppSettings.setOnClickListener {
@@ -157,16 +173,37 @@ class DashboardFragment : Fragment() {
                 if (ShizukuManager.hasPermission()) {
                     executeShizukuAppOps()
                 } else {
-                    ShizukuManager.requestPermission(requireActivity())
+                    when (ShizukuManager.requestPermission()) {
+                        ShizukuManager.PermissionRequestResult.ALREADY_GRANTED -> executeShizukuAppOps()
+                        ShizukuManager.PermissionRequestResult.SERVICE_UNAVAILABLE -> {
+                            showDashboardMessage(R.string.shizuku_service_unavailable, Snackbar.LENGTH_LONG)
+                        }
+                        ShizukuManager.PermissionRequestResult.UNSUPPORTED -> {
+                            showDashboardMessage(R.string.shizuku_version_unsupported, Snackbar.LENGTH_LONG)
+                        }
+                        ShizukuManager.PermissionRequestResult.FAILED -> {
+                            showDashboardMessage(R.string.shizuku_permission_request_failed, Snackbar.LENGTH_LONG)
+                        }
+                        ShizukuManager.PermissionRequestResult.REQUESTED -> Unit
+                    }
                 }
             } else {
-                Snackbar.make(
-                    binding.root,
-                    "Shizuku 未连接，请先打开 Shizuku 应用恢复连接",
-                    Snackbar.LENGTH_LONG
-                ).show()
+                showDashboardMessage(R.string.shizuku_service_unavailable, Snackbar.LENGTH_LONG)
             }
         }
+    }
+
+    private fun requestScreenCapture() {
+        screenCaptureLauncher.launch(Intent(requireContext(), ScreenCaptureActivity::class.java))
+    }
+
+    private fun showDashboardMessage(@StringRes message: Int, duration: Int = Snackbar.LENGTH_SHORT) {
+        if (_binding == null) return
+        Snackbar.make(binding.root, message, duration).apply {
+            requireActivity().findViewById<View>(R.id.bottomNavContainer)
+                ?.takeIf(View::isShown)
+                ?.let { anchorView = it }
+        }.show()
     }
 
     private fun executeShizukuAppOps() {
@@ -175,11 +212,10 @@ class DashboardFragment : Fragment() {
             val success = ShizukuManager.grantAppOpsPermissions(ctx.packageName)
             if (!isAdded) return@launch
             if (success) {
-                Snackbar.make(binding.root, "提权成功，正在请求录屏授权", Snackbar.LENGTH_LONG).show()
-                startActivity(Intent(requireContext(), ScreenCaptureActivity::class.java))
+                requestScreenCapture()
                 renderStatus()
             } else {
-                Snackbar.make(binding.root, "Shizuku 提权失败，请检查相关日志", Snackbar.LENGTH_LONG).show()
+                showDashboardMessage(R.string.shizuku_appops_failed, Snackbar.LENGTH_LONG)
             }
         }
     }

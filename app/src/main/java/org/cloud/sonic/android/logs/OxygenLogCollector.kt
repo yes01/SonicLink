@@ -12,7 +12,8 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
 
-class OxygenLogCollector(private val context: Context) {
+class OxygenLogCollector(private val context: Context) : AppLogCollector {
+    override val targetApp = LogTargetApp.OXYGEN
     private data class ScannedFile(
         val path: String,
         val relativePath: String,
@@ -22,11 +23,11 @@ class OxygenLogCollector(private val context: Context) {
         val file: File? = null
     )
 
-    fun isOxygenInstalled(): Boolean = runCatching {
+    override fun isInstalled(): Boolean = runCatching {
         context.packageManager.getPackageInfo(OXYGEN_PACKAGE, 0)
     }.isSuccess
 
-    suspend fun scan(eventTime: Long, scenario: LogScenario): LogScanResult = withContext(Dispatchers.IO) {
+    override suspend fun scan(eventTime: Long, scenario: LogScenario): LogScanResult = withContext(Dispatchers.IO) {
         val warnings = mutableListOf<String>()
         var scanned = scanDirectRoot()
         var sourceSummary = "氧气日志目录"

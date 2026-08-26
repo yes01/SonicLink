@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
-import android.widget.Toast
 
 class ScreenCaptureActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,7 +17,9 @@ class ScreenCaptureActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_MEDIA_PROJECTION && resultCode == RESULT_OK && data != null) {
             ScreenCaptureState.grant(resultCode, data)
-            Toast.makeText(this, R.string.sonic_link_screen_permission_ready, Toast.LENGTH_SHORT).show()
+            setResult(RESULT_OK)
+        } else {
+            setResult(RESULT_CANCELED)
         }
         finish()
     }

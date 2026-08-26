@@ -2,7 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
@@ -127,13 +128,12 @@
                             android:padding="@dimen/spacing_12">
 
                             <ImageView
+                                android:id="@+id/ivOxygenLogo"
                                 android:layout_width="36dp"
                                 android:layout_height="36dp"
-                                android:background="@drawable/bg_badge_pill"
                                 android:contentDescription="@null"
-                                android:padding="@dimen/spacing_8"
-                                android:src="@drawable/ic_file"
-                                app:tint="@color/brand_primary" />
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/logo_oxygen" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -161,6 +161,7 @@
                             </LinearLayout>
 
                             <ImageView
+                                android:id="@+id/ivOxygenCheck"
                                 android:layout_width="22dp"
                                 android:layout_height="22dp"
                                 android:contentDescription="@null"
@@ -193,13 +194,12 @@
                             android:padding="@dimen/spacing_12">
 
                             <ImageView
+                                android:id="@+id/ivYesLogo"
                                 android:layout_width="36dp"
                                 android:layout_height="36dp"
-                                android:background="@drawable/bg_log_icon_muted"
                                 android:contentDescription="@null"
-                                android:padding="@dimen/spacing_8"
-                                android:src="@drawable/ic_file"
-                                app:tint="@color/text_tertiary" />
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/logo_yes" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -209,6 +209,7 @@
                                 android:orientation="vertical">
 
                                 <TextView
+                                    android:id="@+id/tvYesStatus"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="@string/app_log_yes_short"
@@ -220,10 +221,19 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
-                                    android:text="@string/app_log_coming_soon"
+                                    android:text="@string/app_log_supported"
                                     android:textColor="@color/text_tertiary"
                                     android:textSize="11sp" />
                             </LinearLayout>
+
+                            <ImageView
+                                android:id="@+id/ivYesCheck"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_check"
+                                android:visibility="gone"
+                                app:tint="@color/brand_primary" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
@@ -258,6 +268,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvContextTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/app_log_context_title"
@@ -266,6 +277,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvContextSummary"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"

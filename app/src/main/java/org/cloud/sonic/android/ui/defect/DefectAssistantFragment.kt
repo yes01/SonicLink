@@ -184,6 +184,7 @@ class DefectAssistantFragment : Fragment() {
         val current = platformRepo.getConfig()
         if (!current.isBound) {
             MaterialAlertDialogBuilder(context)
+                .setIcon(R.drawable.ic_qr_code)
                 .setTitle("扫码绑定")
                 .setMessage("请在电脑端 AI 缺陷助手点击“手机”，再使用本页的扫码按钮扫描 5 分钟内有效的二维码。")
                 .setPositiveButton("知道了", null)
@@ -197,6 +198,7 @@ class DefectAssistantFragment : Fragment() {
             add("解除当前账号")
         }
         MaterialAlertDialogBuilder(context)
+            .setIcon(R.drawable.ic_phone_android)
             .setTitle("管理平台绑定")
             .setItems(actions.toTypedArray()) { _, which ->
                 when (actions[which]) {
@@ -226,6 +228,7 @@ class DefectAssistantFragment : Fragment() {
         val current = platformRepo.getConfig()
         val account = current.username.ifBlank { "用户 ${current.userId}" }
         MaterialAlertDialogBuilder(requireContext())
+            .setIcon(R.drawable.ic_delete)
             .setTitle("解除 $account")
             .setMessage("只解除当前账号，手机上的其他平台账号仍可继续使用。")
             .setPositiveButton("解除") { _, _ ->
